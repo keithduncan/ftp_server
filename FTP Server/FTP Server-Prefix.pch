@@ -1,0 +1,7 @@
+//
+// Prefix header for all source files of the 'FTP Server' target in the 'FTP Server' project
+//
+
+#ifdef __OBJC__
+	#import <Foundation/Foundation.h>
+#endif

@@ -1,0 +1,235 @@
+// !$*UTF8*$!
+{
+	archiveVersion = 1;
+	classes = {
+	};
+	objectVersion = 46;
+	objects = {
+
+/* Begin PBXBuildFile section */
+		53759DFC15CEE8AD00F93127 /* Foundation.framework in Frameworks */ = {isa = PBXBuildFile; fileRef = 53759DFB15CEE8AD00F93127 /* Foundation.framework */; };
+		53759DFF15CEE8AD00F93127 /* main.m in Sources */ = {isa = PBXBuildFile; fileRef = 53759DFE15CEE8AD00F93127 /* main.m */; };
+		53759E0315CEE8AD00F93127 /* FTP_Server.1 in CopyFiles */ = {isa = PBXBuildFile; fileRef = 53759E0215CEE8AD00F93127 /* FTP_Server.1 */; };
+/* End PBXBuildFile section */
+
+/* Begin PBXCopyFilesBuildPhase section */
+		53759DF515CEE8AD00F93127 /* CopyFiles */ = {
+			isa = PBXCopyFilesBuildPhase;
+			buildActionMask = 2147483647;
+			dstPath = /usr/share/man/man1/;
+			dstSubfolderSpec = 0;
+			files = (
+				53759E0315CEE8AD00F93127 /* FTP_Server.1 in CopyFiles */,
+			);
+			runOnlyForDeploymentPostprocessing = 1;
+		};
+/* End PBXCopyFilesBuildPhase section */
+
+/* Begin PBXFileReference section */
+		53759DF715CEE8AD00F93127 /* FTP Server */ = {isa = PBXFileReference; explicitFileType = "compiled.mach-o.executable"; includeInIndex = 0; path = "FTP Server"; sourceTree = BUILT_PRODUCTS_DIR; };
+		53759DFB15CEE8AD00F93127 /* Foundation.framework */ = {isa = PBXFileReference; lastKnownFileType = wrapper.framework; name = Foundation.framework; path = System/Library/Frameworks/Foundation.framework; sourceTree = SDKROOT; };
+		53759DFE15CEE8AD00F93127 /* main.m */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.c.objc; path = main.m; sourceTree = "<group>"; };
+		53759E0115CEE8AD00F93127 /* FTP Server-Prefix.pch */ = {isa = PBXFileReference; path = "FTP Server-Prefix.pch"; sourceTree = "<group>"; };
+		53759E0215CEE8AD00F93127 /* FTP_Server.1 */ = {isa = PBXFileReference; lastKnownFileType = text.man; path = FTP_Server.1; sourceTree = "<group>"; };
+/* End PBXFileReference section */
+
+/* Begin PBXFrameworksBuildPhase section */
+		53759DF415CEE8AD00F93127 /* Frameworks */ = {
+			isa = PBXFrameworksBuildPhase;
+			buildActionMask = 2147483647;
+			files = (
+				53759DFC15CEE8AD00F93127 /* Foundation.framework in Frameworks */,
+			);
+			runOnlyForDeploymentPostprocessing = 0;
+		};
+/* End PBXFrameworksBuildPhase section */
+
+/* Begin PBXGroup section */
+		53759DEC15CEE8AD00F93127 = {
+			isa = PBXGroup;
+			children = (
+				53759DFD15CEE8AD00F93127 /* FTP Server */,
+				53759DFA15CEE8AD00F93127 /* Frameworks */,
+				53759DF815CEE8AD00F93127 /* Products */,
+			);
+			sourceTree = "<group>";
+		};
+		53759DF815CEE8AD00F93127 /* Products */ = {
+			isa = PBXGroup;
+			children = (
+				53759DF715CEE8AD00F93127 /* FTP Server */,
+			);
+			name = Products;
+			sourceTree = "<group>";
+		};
+		53759DFA15CEE8AD00F93127 /* Frameworks */ = {
+			isa = PBXGroup;
+			children = (
+				53759DFB15CEE8AD00F93127 /* Foundation.framework */,
+			);
+			name = Frameworks;
+			sourceTree = "<group>";
+		};
+		53759DFD15CEE8AD00F93127 /* FTP Server */ = {
+			isa = PBXGroup;
+			children = (
+				53759DFE15CEE8AD00F93127 /* main.m */,
+				53759E0215CEE8AD00F93127 /* FTP_Server.1 */,
+				53759E0015CEE8AD00F93127 /* Supporting Files */,
+			);
+			path = "FTP Server";
+			sourceTree = "<group>";
+		};
+		53759E0015CEE8AD00F93127 /* Supporting Files */ = {
+			isa = PBXGroup;
+			children = (
+				53759E0115CEE8AD00F93127 /* FTP Server-Prefix.pch */,
+			);
+			name = "Supporting Files";
+			sourceTree = "<group>";
+		};
+/* End PBXGroup section */
+
+/* Begin PBXNativeTarget section */
+		53759DF615CEE8AD00F93127 /* FTP Server */ = {
+			isa = PBXNativeTarget;
+			buildConfigurationList = 53759E0615CEE8AD00F93127 /* Build configuration list for PBXNativeTarget "FTP Server" */;
+			buildPhases = (
+				53759DF315CEE8AD00F93127 /* Sources */,
+				53759DF415CEE8AD00F93127 /* Frameworks */,
+				53759DF515CEE8AD00F93127 /* CopyFiles */,
+			);
+			buildRules = (
+			);
+			dependencies = (
+			);
+			name = "FTP Server";
+			productName = "FTP Server";
+			productReference = 53759DF715CEE8AD00F93127 /* FTP Server */;
+			productType = "com.apple.product-type.tool";
+		};
+/* End PBXNativeTarget section */
+
+/* Begin PBXProject section */
+		53759DEE15CEE8AD00F93127 /* Project object */ = {
+			isa = PBXProject;
+			attributes = {
+				LastUpgradeCheck = 0430;
+				ORGANIZATIONNAME = "Realmac Software";
+			};
+			buildConfigurationList = 53759DF115CEE8AD00F93127 /* Build configuration list for PBXProject "FTP Server" */;
+			compatibilityVersion = "Xcode 3.2";
+			developmentRegion = English;
+			hasScannedForEncodings = 0;
+			knownRegions = (
+				en,
+			);
+			mainGroup = 53759DEC15CEE8AD00F93127;
+			productRefGroup = 53759DF815CEE8AD00F93127 /* Products */;
+			projectDirPath = "";
+			projectRoot = "";
+			targets = (
+				53759DF615CEE8AD00F93127 /* FTP Server */,
+			);
+		};
+/* End PBXProject section */
+
+/* Begin PBXSourcesBuildPhase section */
+		53759DF315CEE8AD00F93127 /* Sources */ = {
+			isa = PBXSourcesBuildPhase;
+			buildActionMask = 2147483647;
+			files = (
+				53759DFF15CEE8AD00F93127 /* main.m in Sources */,
+			);
+			runOnlyForDeploymentPostprocessing = 0;
+		};
+/* End PBXSourcesBuildPhase section */
+
+/* Begin XCBuildConfiguration section */
+		53759E0415CEE8AD00F93127 /* Debug */ = {
+			isa = XCBuildConfiguration;
+			buildSettings = {
+				ALWAYS_SEARCH_USER_PATHS = NO;
+				ARCHS = "$(ARCHS_STANDARD_64_BIT)";
+				COPY_PHASE_STRIP = NO;
+				GCC_C_LANGUAGE_STANDARD = gnu99;
+				GCC_DYNAMIC_NO_PIC = NO;
+				GCC_ENABLE_OBJC_EXCEPTIONS = YES;
+				GCC_OPTIMIZATION_LEVEL = 0;
+				GCC_PREPROCESSOR_DEFINITIONS = (
+					"DEBUG=1",
+					"$(inherited)",
+				);
+				GCC_SYMBOLS_PRIVATE_EXTERN = NO;
+				GCC_VERSION = com.apple.compilers.llvm.clang.1_0;
+				GCC_WARN_64_TO_32_BIT_CONVERSION = YES;
+				GCC_WARN_ABOUT_RETURN_TYPE = YES;
+				GCC_WARN_UNINITIALIZED_AUTOS = YES;
+				GCC_WARN_UNUSED_VARIABLE = YES;
+				MACOSX_DEPLOYMENT_TARGET = 10.7;
+				ONLY_ACTIVE_ARCH = YES;
+				SDKROOT = macosx;
+			};
+			name = Debug;
+		};
+		53759E0515CEE8AD00F93127 /* Release */ = {
+			isa = XCBuildConfiguration;
+			buildSettings = {
+				ALWAYS_SEARCH_USER_PATHS = NO;
+				ARCHS = "$(ARCHS_STANDARD_64_BIT)";
+				COPY_PHASE_STRIP = YES;
+				DEBUG_INFORMATION_FORMAT = "dwarf-with-dsym";
+				GCC_C_LANGUAGE_STANDARD = gnu99;
+				GCC_ENABLE_OBJC_EXCEPTIONS = YES;
+				GCC_VERSION = com.apple.compilers.llvm.clang.1_0;
+				GCC_WARN_64_TO_32_BIT_CONVERSION = YES;
+				GCC_WARN_ABOUT_RETURN_TYPE = YES;
+				GCC_WARN_UNINITIALIZED_AUTOS = YES;
+				GCC_WARN_UNUSED_VARIABLE = YES;
+				MACOSX_DEPLOYMENT_TARGET = 10.7;
+				SDKROOT = macosx;
+			};
+			name = Release;
+		};
+		53759E0715CEE8AD00F93127 /* Debug */ = {
+			isa = XCBuildConfiguration;
+			buildSettings = {
+				GCC_PRECOMPILE_PREFIX_HEADER = YES;
+				GCC_PREFIX_HEADER = "FTP Server/FTP Server-Prefix.pch";
+				PRODUCT_NAME = "$(TARGET_NAME)";
+			};
+			name = Debug;
+		};
+		53759E0815CEE8AD00F93127 /* Release */ = {
+			isa = XCBuildConfiguration;
+			buildSettings = {
+				GCC_PRECOMPILE_PREFIX_HEADER = YES;
+				GCC_PREFIX_HEADER = "FTP Server/FTP Server-Prefix.pch";
+				PRODUCT_NAME = "$(TARGET_NAME)";
+			};
+			name = Release;
+		};
+/* End XCBuildConfiguration section */
+
+/* Begin XCConfigurationList section */
+		53759DF115CEE8AD00F93127 /* Build configuration list for PBXProject "FTP Server" */ = {
+			isa = XCConfigurationList;
+			buildConfigurations = (
+				53759E0415CEE8AD00F93127 /* Debug */,
+				53759E0515CEE8AD00F93127 /* Release */,
+			);
+			defaultConfigurationIsVisible = 0;
+			defaultConfigurationName = Release;
+		};
+		53759E0615CEE8AD00F93127 /* Build configuration list for PBXNativeTarget "FTP Server" */ = {
+			isa = XCConfigurationList;
+			buildConfigurations = (
+				53759E0715CEE8AD00F93127 /* Debug */,
+				53759E0815CEE8AD00F93127 /* Release */,
+			);
+			defaultConfigurationIsVisible = 0;
+		};
+/* End XCConfigurationList section */
+	};
+	rootObject = 53759DEE15CEE8AD00F93127 /* Project object */;
+}
