@@ -48,11 +48,11 @@ AFNETWORK_NSSTRING_CONTEXT(_AFNetworkFTPConnectionDataConnectionReadContext);
 }
 
 - (void)closeDataServer {
-	[self.dataServer close];
-	self.dataServer = nil;
-	
 	[self.dataConnection close];
 	self.dataConnection = nil;
+	
+	[self.dataServer close];
+	self.dataServer = nil;
 }
 
 - (BOOL)hasDataServer {
