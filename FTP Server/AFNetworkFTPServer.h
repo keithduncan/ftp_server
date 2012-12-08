@@ -8,7 +8,7 @@
 
 #import "CoreNetworking/CoreNetworking.h"
 
-#import "AFNetworkVirtualFileSystem.h"
+#import "AFVirtualFileSystem.h"
 
 /*!
 	\brief
@@ -22,6 +22,6 @@
 	\brief
 	The server is oblivious to the type of the mounted file system.
  */
-@property (retain, nonatomic) id <AFNetworkVirtualFileSystem> fileSystem;
+@property (retain, nonatomic) id <AFVirtualFileSystem> fileSystem;
 
 @end

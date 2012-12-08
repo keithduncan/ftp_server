@@ -28,8 +28,8 @@
 
 @property (assign, nonatomic) NSString * (*defaultMessageFunction)(NSUInteger);
 
+- (void)writeReply:(NSUInteger)replyCode mark:(NSString *)mark;
 - (void)writeReply:(NSUInteger)replyCode message:(NSString *)message readLine:(void *)readLine;
-- (void)writeReply:(NSUInteger)replyCode mark:(NSString *)mark readLine:(void *)readLine;
 
 - (void)readLineWithContext:(void *)context;
 

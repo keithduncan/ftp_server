@@ -11,13 +11,13 @@
 #import "CoreNetworking/CoreNetworking.h"
 
 #import "AFNetworkFTPServer.h"
-#import "AFNetworkInMemoryFileSystem.h"
+#import "AFInMemoryFileSystem.h"
 
 #pragma mark -
 
 void server_main(void) {
 	AFNetworkFTPServer *server = [AFNetworkFTPServer server];
-	server.fileSystem = [[[AFNetworkInMemoryFileSystem alloc] init] autorelease];
+	server.fileSystem = [[[AFInMemoryFileSystem alloc] init] autorelease];
 	
 	BOOL openSockets = [server openInternetSocketsWithSocketSignature:AFNetworkSocketSignatureInternetTCP scope:AFNetworkInternetSocketScopeGlobal port:5000 errorHandler:nil];
 	NSCParameterAssert(openSockets);

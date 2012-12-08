@@ -44,16 +44,16 @@ static NSString *_AFNetworkTelnetConnectionReadLineContext = @"_AFNetworkTelnetC
 	}
 }
 
+- (void)writeReply:(NSUInteger)replyCode mark:(NSString *)mark {
+	NSParameterAssert(mark != nil);
+	[self _writeReply:replyCode separator:@"-" suffix:mark readLine:NULL];
+}
+
 - (void)writeReply:(NSUInteger)replyCode message:(NSString *)message readLine:(void *)readLine {
 	if (message == nil && self.defaultMessageFunction != NULL) {
 		message = self.defaultMessageFunction(replyCode);
 	}
 	[self _writeReply:replyCode separator:@" " suffix:message readLine:readLine];
-}
-
-- (void)writeReply:(NSUInteger)replyCode mark:(NSString *)mark readLine:(void *)readLine {
-	NSParameterAssert(mark != nil);
-	[self _writeReply:replyCode separator:@"-" suffix:mark readLine:readLine];
 }
 
 - (void)networkLayer:(id <AFNetworkTransportLayer>)layer didWrite:(id <AFNetworkPacketWriting>)packet context:(void *)context {

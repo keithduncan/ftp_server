@@ -7,14 +7,14 @@
 	objects = {
 
 /* Begin PBXBuildFile section */
-		533F3016165BF5E100E327D4 /* AFNetworkVirtualFileSystem.m in Sources */ = {isa = PBXBuildFile; fileRef = 533F3015165BF5E100E327D4 /* AFNetworkVirtualFileSystem.m */; };
+		533F3016165BF5E100E327D4 /* AFVirtualFileSystem.m in Sources */ = {isa = PBXBuildFile; fileRef = 533F3015165BF5E100E327D4 /* AFVirtualFileSystem.m */; };
 		533F3019165C35DE00E327D4 /* AFNetworkFTPConnection.m in Sources */ = {isa = PBXBuildFile; fileRef = 533F3018165C35DE00E327D4 /* AFNetworkFTPConnection.m */; };
 		53759DFC15CEE8AD00F93127 /* Foundation.framework in Frameworks */ = {isa = PBXBuildFile; fileRef = 53759DFB15CEE8AD00F93127 /* Foundation.framework */; };
 		53759DFF15CEE8AD00F93127 /* main.m in Sources */ = {isa = PBXBuildFile; fileRef = 53759DFE15CEE8AD00F93127 /* main.m */; };
 		53759E1715CEE8E100F93127 /* CoreNetworking.framework in Frameworks */ = {isa = PBXBuildFile; fileRef = 53759E1215CEE8BE00F93127 /* CoreNetworking.framework */; };
 		53A0482215D077290054FFB0 /* AFNetworkFTPServer.m in Sources */ = {isa = PBXBuildFile; fileRef = 53A0482115D077290054FFB0 /* AFNetworkFTPServer.m */; };
 		53A0482515D077B80054FFB0 /* AFNetworkTelnetConnection.m in Sources */ = {isa = PBXBuildFile; fileRef = 53A0482415D077B80054FFB0 /* AFNetworkTelnetConnection.m */; };
-		53A0491015D1C4CF0054FFB0 /* AFNetworkInMemoryFileSystem.m in Sources */ = {isa = PBXBuildFile; fileRef = 53A0490F15D1C4CE0054FFB0 /* AFNetworkInMemoryFileSystem.m */; };
+		53A0491015D1C4CF0054FFB0 /* AFInMemoryFileSystem.m in Sources */ = {isa = PBXBuildFile; fileRef = 53A0490F15D1C4CE0054FFB0 /* AFInMemoryFileSystem.m */; };
 /* End PBXBuildFile section */
 
 /* Begin PBXContainerItemProxy section */
@@ -49,10 +49,11 @@
 /* End PBXContainerItemProxy section */
 
 /* Begin PBXFileReference section */
-		533F3014165BEF2000E327D4 /* AFNetworkVirtualFileSystem.h */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.c.h; path = AFNetworkVirtualFileSystem.h; sourceTree = "<group>"; };
-		533F3015165BF5E100E327D4 /* AFNetworkVirtualFileSystem.m */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.objc; path = AFNetworkVirtualFileSystem.m; sourceTree = "<group>"; };
+		533F3014165BEF2000E327D4 /* AFVirtualFileSystem.h */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.c.h; path = AFVirtualFileSystem.h; sourceTree = "<group>"; };
+		533F3015165BF5E100E327D4 /* AFVirtualFileSystem.m */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.objc; path = AFVirtualFileSystem.m; sourceTree = "<group>"; };
 		533F3017165C35DE00E327D4 /* AFNetworkFTPConnection.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; path = AFNetworkFTPConnection.h; sourceTree = "<group>"; };
 		533F3018165C35DE00E327D4 /* AFNetworkFTPConnection.m */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.objc; path = AFNetworkFTPConnection.m; sourceTree = "<group>"; };
+		536312A6166A7B3200B4308D /* AFVirtualFileSystemNode+AFVirtualFileSystemPrivate.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; path = "AFVirtualFileSystemNode+AFVirtualFileSystemPrivate.h"; sourceTree = "<group>"; };
 		53759DF715CEE8AD00F93127 /* FTP Server */ = {isa = PBXFileReference; explicitFileType = "compiled.mach-o.executable"; includeInIndex = 0; path = "FTP Server"; sourceTree = BUILT_PRODUCTS_DIR; };
 		53759DFB15CEE8AD00F93127 /* Foundation.framework */ = {isa = PBXFileReference; lastKnownFileType = wrapper.framework; name = Foundation.framework; path = System/Library/Frameworks/Foundation.framework; sourceTree = SDKROOT; };
 		53759DFE15CEE8AD00F93127 /* main.m */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.c.objc; path = main.m; sourceTree = "<group>"; };
@@ -62,8 +63,8 @@
 		53A0482115D077290054FFB0 /* AFNetworkFTPServer.m */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.objc; path = AFNetworkFTPServer.m; sourceTree = "<group>"; };
 		53A0482315D077B80054FFB0 /* AFNetworkTelnetConnection.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; path = AFNetworkTelnetConnection.h; sourceTree = "<group>"; };
 		53A0482415D077B80054FFB0 /* AFNetworkTelnetConnection.m */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.objc; path = AFNetworkTelnetConnection.m; sourceTree = "<group>"; };
-		53A0490E15D1C4CE0054FFB0 /* AFNetworkInMemoryFileSystem.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; path = AFNetworkInMemoryFileSystem.h; sourceTree = "<group>"; };
-		53A0490F15D1C4CE0054FFB0 /* AFNetworkInMemoryFileSystem.m */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.objc; path = AFNetworkInMemoryFileSystem.m; sourceTree = "<group>"; };
+		53A0490E15D1C4CE0054FFB0 /* AFInMemoryFileSystem.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; path = AFInMemoryFileSystem.h; sourceTree = "<group>"; };
+		53A0490F15D1C4CE0054FFB0 /* AFInMemoryFileSystem.m */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.objc; path = AFInMemoryFileSystem.m; sourceTree = "<group>"; };
 /* End PBXFileReference section */
 
 /* Begin PBXFrameworksBuildPhase section */
@@ -115,10 +116,11 @@
 				533F3018165C35DE00E327D4 /* AFNetworkFTPConnection.m */,
 				53A0482015D077290054FFB0 /* AFNetworkFTPServer.h */,
 				53A0482115D077290054FFB0 /* AFNetworkFTPServer.m */,
-				533F3014165BEF2000E327D4 /* AFNetworkVirtualFileSystem.h */,
-				533F3015165BF5E100E327D4 /* AFNetworkVirtualFileSystem.m */,
-				53A0490E15D1C4CE0054FFB0 /* AFNetworkInMemoryFileSystem.h */,
-				53A0490F15D1C4CE0054FFB0 /* AFNetworkInMemoryFileSystem.m */,
+				533F3014165BEF2000E327D4 /* AFVirtualFileSystem.h */,
+				536312A6166A7B3200B4308D /* AFVirtualFileSystemNode+AFVirtualFileSystemPrivate.h */,
+				533F3015165BF5E100E327D4 /* AFVirtualFileSystem.m */,
+				53A0490E15D1C4CE0054FFB0 /* AFInMemoryFileSystem.h */,
+				53A0490F15D1C4CE0054FFB0 /* AFInMemoryFileSystem.m */,
 				53759E0015CEE8AD00F93127 /* Supporting Files */,
 			);
 			path = "FTP Server";
@@ -227,8 +229,8 @@
 				53759DFF15CEE8AD00F93127 /* main.m in Sources */,
 				53A0482215D077290054FFB0 /* AFNetworkFTPServer.m in Sources */,
 				53A0482515D077B80054FFB0 /* AFNetworkTelnetConnection.m in Sources */,
-				53A0491015D1C4CF0054FFB0 /* AFNetworkInMemoryFileSystem.m in Sources */,
-				533F3016165BF5E100E327D4 /* AFNetworkVirtualFileSystem.m in Sources */,
+				53A0491015D1C4CF0054FFB0 /* AFInMemoryFileSystem.m in Sources */,
+				533F3016165BF5E100E327D4 /* AFVirtualFileSystem.m in Sources */,
 				533F3019165C35DE00E327D4 /* AFNetworkFTPConnection.m in Sources */,
 			);
 			runOnlyForDeploymentPostprocessing = 0;

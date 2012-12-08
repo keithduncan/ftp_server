@@ -16,11 +16,13 @@
 @property (retain, nonatomic) NSTimer *dataConnectionTimeout;
 @property (readwrite, retain, nonatomic) AFNetworkConnection *dataConnection;
 @property (retain, nonatomic) AFNetworkPacket <AFNetworkPacketReading> *dataReadPacket;
+@property (retain, nonatomic) AFNetworkPacket <AFNetworkPacketWriting> *dataWritePacket;
 @end
 
 @implementation AFNetworkFTPConnection
 
 AFNETWORK_NSSTRING_CONTEXT(_AFNetworkFTPConnectionDataConnectionReadContext);
+AFNETWORK_NSSTRING_CONTEXT(_AFNetworkFTPConnectionDataConnectionWriteContext);
 
 @dynamic delegate;
 
@@ -61,8 +63,27 @@ AFNETWORK_NSSTRING_CONTEXT(_AFNetworkFTPConnectionDataConnectionReadContext);
 
 - (void)readFirstDataServerConnectionToWriteStream:(NSOutputStream *)outputStream {
 	NSParameterAssert(self.hasDataServer);
+	[self _assertDoesntHavePendingDataConnectionPacket];
+	
 	self.dataReadPacket = [[[AFNetworkPacketReadToWriteStream alloc] initWithTotalBytesToRead:-1 writeStream:outputStream] autorelease];
 	
+	[self _startDataConnectionTimeout];
+}
+
+- (void)writeFirstDataServerConnectionFromReadStream:(NSInputStream *)inputStream {
+	NSParameterAssert(self.hasDataServer);
+	[self _assertDoesntHavePendingDataConnectionPacket];
+	
+	self.dataWritePacket = [[[AFNetworkPacketWriteFromReadStream alloc] initWithTotalBytesToWrite:-1 readStream:inputStream] autorelease];
+	
+	[self _startDataConnectionTimeout];
+}
+
+- (void)_assertDoesntHavePendingDataConnectionPacket {
+	NSParameterAssert(self.dataReadPacket == nil && self.dataWritePacket == nil);
+}
+
+- (void)_startDataConnectionTimeout {
 	if (self.dataConnection != nil) {
 		[self _didAcceptConnectionOrTimeout];
 		return;
@@ -100,11 +121,15 @@ AFNETWORK_NSSTRING_CONTEXT(_AFNetworkFTPConnectionDataConnectionReadContext);
 		return;
 	}
 	
-	AFNetworkPacket <AFNetworkPacketReading> *packet = self.dataReadPacket;
-	if (packet == nil) {
-		return;
+	AFNetworkPacket <AFNetworkPacketReading> *readPacket = self.dataReadPacket;
+	if (readPacket != nil) {
+		[self.dataConnection performRead:readPacket withTimeout:-1 context:&_AFNetworkFTPConnectionDataConnectionReadContext];
 	}
-	[self.dataConnection performRead:packet withTimeout:-1 context:&_AFNetworkFTPConnectionDataConnectionReadContext];
+	
+	AFNetworkPacket <AFNetworkPacketWriting> *writePacket = self.dataWritePacket;
+	if (writePacket != nil) {
+		[self.dataConnection performWrite:writePacket withTimeout:-1 context:&_AFNetworkFTPConnectionDataConnectionWriteContext];
+	}
 }
 
 - (void)networkLayer:(id <AFNetworkTransportLayer>)layer didRead:(AFNetworkPacket<AFNetworkPacketReading> *)packet context:(void *)context {
@@ -113,6 +138,15 @@ AFNETWORK_NSSTRING_CONTEXT(_AFNetworkFTPConnectionDataConnectionReadContext);
 	}
 	else {
 		[super networkLayer:layer didRead:packet context:context];
+	}
+}
+
+- (void)networkLayer:(id<AFNetworkTransportLayer>)layer didWrite:(AFNetworkPacket<AFNetworkPacketWriting> *)packet context:(void *)context {
+	if (context == &_AFNetworkFTPConnectionDataConnectionWriteContext) {
+		[self.delegate connectionDidWriteDataFromReadStream:self];
+	}
+	else {
+		[super networkLayer:layer didWrite:packet context:context];
 	}
 }
 

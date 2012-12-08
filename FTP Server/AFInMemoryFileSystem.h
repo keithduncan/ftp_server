@@ -8,8 +8,8 @@
 
 #import <Foundation/Foundation.h>
 
-#import "AFNetworkVirtualFileSystem.h"
+#import "AFVirtualFileSystem.h"
 
-@interface AFNetworkInMemoryFileSystem : NSObject <AFNetworkVirtualFileSystem>
+@interface AFInMemoryFileSystem : NSObject <AFVirtualFileSystem>
 
 @end

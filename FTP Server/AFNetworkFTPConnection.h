@@ -14,6 +14,7 @@
 
 - (void)connection:(AFNetworkFTPConnection *)connection dataConnectionDidReceiveError:(NSError *)error;
 - (void)connectionDidReadDataToWriteStream:(AFNetworkFTPConnection *)connection;
+- (void)connectionDidWriteDataFromReadStream:(AFNetworkFTPConnection *)connection;
 
 @end
 
@@ -53,10 +54,17 @@
 
 /*!
 	\brief
-	Wait for a timeout for a connection to appear on the listening, the first connection is accepted.
+	Wait for a timeout for a connection to appear on the listening socket, the first connection is accepted.
 	The data server is automatically closed once a data connection is accepted or the timeout occurs.
  */
 - (void)readFirstDataServerConnectionToWriteStream:(NSOutputStream *)outputStream;
+
+/*!
+	\brief
+	Wait for a timeout for a connection to appear on the listening socket, the first connection is accepted.
+	The data server is automatically closed once a data connection is accepted or the timeout occurs.
+ */
+- (void)writeFirstDataServerConnectionFromReadStream:(NSInputStream *)inputStream;
 
 /*
 	PORT support
