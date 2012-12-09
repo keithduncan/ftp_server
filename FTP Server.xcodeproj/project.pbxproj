@@ -7,6 +7,8 @@
 	objects = {
 
 /* Begin PBXBuildFile section */
+		531A1D031674E32400EA1D82 /* Foundation.framework in Frameworks */ = {isa = PBXBuildFile; fileRef = 53759DFB15CEE8AD00F93127 /* Foundation.framework */; };
+		531A1D061674E32400EA1D82 /* main.m in Sources */ = {isa = PBXBuildFile; fileRef = 531A1D051674E32400EA1D82 /* main.m */; };
 		533F3016165BF5E100E327D4 /* AFVirtualFileSystem.m in Sources */ = {isa = PBXBuildFile; fileRef = 533F3015165BF5E100E327D4 /* AFVirtualFileSystem.m */; };
 		533F3019165C35DE00E327D4 /* AFNetworkFTPConnection.m in Sources */ = {isa = PBXBuildFile; fileRef = 533F3018165C35DE00E327D4 /* AFNetworkFTPConnection.m */; };
 		53759DFC15CEE8AD00F93127 /* Foundation.framework in Frameworks */ = {isa = PBXBuildFile; fileRef = 53759DFB15CEE8AD00F93127 /* Foundation.framework */; };
@@ -15,6 +17,7 @@
 		53A0482215D077290054FFB0 /* AFNetworkFTPServer.m in Sources */ = {isa = PBXBuildFile; fileRef = 53A0482115D077290054FFB0 /* AFNetworkFTPServer.m */; };
 		53A0482515D077B80054FFB0 /* AFNetworkTelnetConnection.m in Sources */ = {isa = PBXBuildFile; fileRef = 53A0482415D077B80054FFB0 /* AFNetworkTelnetConnection.m */; };
 		53A0491015D1C4CF0054FFB0 /* AFInMemoryFileSystem.m in Sources */ = {isa = PBXBuildFile; fileRef = 53A0490F15D1C4CE0054FFB0 /* AFInMemoryFileSystem.m */; };
+		53A225FE167544BF0036CB30 /* AFNetworkFTPMessage.m in Sources */ = {isa = PBXBuildFile; fileRef = 53A225FD167544BF0036CB30 /* AFNetworkFTPMessage.m */; };
 /* End PBXBuildFile section */
 
 /* Begin PBXContainerItemProxy section */
@@ -48,7 +51,22 @@
 		};
 /* End PBXContainerItemProxy section */
 
+/* Begin PBXCopyFilesBuildPhase section */
+		531A1CFF1674E32400EA1D82 /* CopyFiles */ = {
+			isa = PBXCopyFilesBuildPhase;
+			buildActionMask = 2147483647;
+			dstPath = /usr/share/man/man1/;
+			dstSubfolderSpec = 0;
+			files = (
+			);
+			runOnlyForDeploymentPostprocessing = 1;
+		};
+/* End PBXCopyFilesBuildPhase section */
+
 /* Begin PBXFileReference section */
+		531A1D011674E32400EA1D82 /* FTP PASV Converter */ = {isa = PBXFileReference; explicitFileType = "compiled.mach-o.executable"; includeInIndex = 0; path = "FTP PASV Converter"; sourceTree = BUILT_PRODUCTS_DIR; };
+		531A1D051674E32400EA1D82 /* main.m */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.c.objc; path = main.m; sourceTree = "<group>"; };
+		531A1D081674E32400EA1D82 /* FTP PASV Converter-Prefix.pch */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.c.h; path = "FTP PASV Converter-Prefix.pch"; sourceTree = "<group>"; };
 		533F3014165BEF2000E327D4 /* AFVirtualFileSystem.h */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.c.h; path = AFVirtualFileSystem.h; sourceTree = "<group>"; };
 		533F3015165BF5E100E327D4 /* AFVirtualFileSystem.m */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.objc; path = AFVirtualFileSystem.m; sourceTree = "<group>"; };
 		533F3017165C35DE00E327D4 /* AFNetworkFTPConnection.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; path = AFNetworkFTPConnection.h; sourceTree = "<group>"; };
@@ -65,9 +83,19 @@
 		53A0482415D077B80054FFB0 /* AFNetworkTelnetConnection.m */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.objc; path = AFNetworkTelnetConnection.m; sourceTree = "<group>"; };
 		53A0490E15D1C4CE0054FFB0 /* AFInMemoryFileSystem.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; path = AFInMemoryFileSystem.h; sourceTree = "<group>"; };
 		53A0490F15D1C4CE0054FFB0 /* AFInMemoryFileSystem.m */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.objc; path = AFInMemoryFileSystem.m; sourceTree = "<group>"; };
+		53A225FC167544BF0036CB30 /* AFNetworkFTPMessage.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; path = AFNetworkFTPMessage.h; sourceTree = "<group>"; };
+		53A225FD167544BF0036CB30 /* AFNetworkFTPMessage.m */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.objc; path = AFNetworkFTPMessage.m; sourceTree = "<group>"; };
 /* End PBXFileReference section */
 
 /* Begin PBXFrameworksBuildPhase section */
+		531A1CFE1674E32400EA1D82 /* Frameworks */ = {
+			isa = PBXFrameworksBuildPhase;
+			buildActionMask = 2147483647;
+			files = (
+				531A1D031674E32400EA1D82 /* Foundation.framework in Frameworks */,
+			);
+			runOnlyForDeploymentPostprocessing = 0;
+		};
 		53759DF415CEE8AD00F93127 /* Frameworks */ = {
 			isa = PBXFrameworksBuildPhase;
 			buildActionMask = 2147483647;
@@ -80,10 +108,28 @@
 /* End PBXFrameworksBuildPhase section */
 
 /* Begin PBXGroup section */
+		531A1D041674E32400EA1D82 /* FTP PASV Converter */ = {
+			isa = PBXGroup;
+			children = (
+				531A1D051674E32400EA1D82 /* main.m */,
+				531A1D071674E32400EA1D82 /* Supporting Files */,
+			);
+			path = "FTP PASV Converter";
+			sourceTree = "<group>";
+		};
+		531A1D071674E32400EA1D82 /* Supporting Files */ = {
+			isa = PBXGroup;
+			children = (
+				531A1D081674E32400EA1D82 /* FTP PASV Converter-Prefix.pch */,
+			);
+			name = "Supporting Files";
+			sourceTree = "<group>";
+		};
 		53759DEC15CEE8AD00F93127 = {
 			isa = PBXGroup;
 			children = (
 				53759DFD15CEE8AD00F93127 /* FTP Server */,
+				531A1D041674E32400EA1D82 /* FTP PASV Converter */,
 				53759DFA15CEE8AD00F93127 /* Frameworks */,
 				53759DF815CEE8AD00F93127 /* Products */,
 			);
@@ -93,6 +139,7 @@
 			isa = PBXGroup;
 			children = (
 				53759DF715CEE8AD00F93127 /* FTP Server */,
+				531A1D011674E32400EA1D82 /* FTP PASV Converter */,
 			);
 			name = Products;
 			sourceTree = "<group>";
@@ -114,6 +161,8 @@
 				53A0482415D077B80054FFB0 /* AFNetworkTelnetConnection.m */,
 				533F3017165C35DE00E327D4 /* AFNetworkFTPConnection.h */,
 				533F3018165C35DE00E327D4 /* AFNetworkFTPConnection.m */,
+				53A225FC167544BF0036CB30 /* AFNetworkFTPMessage.h */,
+				53A225FD167544BF0036CB30 /* AFNetworkFTPMessage.m */,
 				53A0482015D077290054FFB0 /* AFNetworkFTPServer.h */,
 				53A0482115D077290054FFB0 /* AFNetworkFTPServer.m */,
 				533F3014165BEF2000E327D4 /* AFVirtualFileSystem.h */,
@@ -147,6 +196,23 @@
 /* End PBXGroup section */
 
 /* Begin PBXNativeTarget section */
+		531A1D001674E32400EA1D82 /* FTP PASV Converter */ = {
+			isa = PBXNativeTarget;
+			buildConfigurationList = 531A1D0B1674E32400EA1D82 /* Build configuration list for PBXNativeTarget "FTP PASV Converter" */;
+			buildPhases = (
+				531A1CFD1674E32400EA1D82 /* Sources */,
+				531A1CFE1674E32400EA1D82 /* Frameworks */,
+				531A1CFF1674E32400EA1D82 /* CopyFiles */,
+			);
+			buildRules = (
+			);
+			dependencies = (
+			);
+			name = "FTP PASV Converter";
+			productName = "FTP PASV Converter";
+			productReference = 531A1D011674E32400EA1D82 /* FTP PASV Converter */;
+			productType = "com.apple.product-type.tool";
+		};
 		53759DF615CEE8AD00F93127 /* FTP Server */ = {
 			isa = PBXNativeTarget;
 			buildConfigurationList = 53759E0615CEE8AD00F93127 /* Build configuration list for PBXNativeTarget "FTP Server" */;
@@ -193,6 +259,7 @@
 			projectRoot = "";
 			targets = (
 				53759DF615CEE8AD00F93127 /* FTP Server */,
+				531A1D001674E32400EA1D82 /* FTP PASV Converter */,
 			);
 		};
 /* End PBXProject section */
@@ -222,6 +289,14 @@
 /* End PBXReferenceProxy section */
 
 /* Begin PBXSourcesBuildPhase section */
+		531A1CFD1674E32400EA1D82 /* Sources */ = {
+			isa = PBXSourcesBuildPhase;
+			buildActionMask = 2147483647;
+			files = (
+				531A1D061674E32400EA1D82 /* main.m in Sources */,
+			);
+			runOnlyForDeploymentPostprocessing = 0;
+		};
 		53759DF315CEE8AD00F93127 /* Sources */ = {
 			isa = PBXSourcesBuildPhase;
 			buildActionMask = 2147483647;
@@ -232,6 +307,7 @@
 				53A0491015D1C4CF0054FFB0 /* AFInMemoryFileSystem.m in Sources */,
 				533F3016165BF5E100E327D4 /* AFVirtualFileSystem.m in Sources */,
 				533F3019165C35DE00E327D4 /* AFNetworkFTPConnection.m in Sources */,
+				53A225FE167544BF0036CB30 /* AFNetworkFTPMessage.m in Sources */,
 			);
 			runOnlyForDeploymentPostprocessing = 0;
 		};
@@ -246,6 +322,36 @@
 /* End PBXTargetDependency section */
 
 /* Begin XCBuildConfiguration section */
+		531A1D0C1674E32400EA1D82 /* Debug */ = {
+			isa = XCBuildConfiguration;
+			buildSettings = {
+				CLANG_CXX_LANGUAGE_STANDARD = "gnu++0x";
+				CLANG_CXX_LIBRARY = "libc++";
+				CLANG_ENABLE_OBJC_ARC = YES;
+				CLANG_WARN_EMPTY_BODY = YES;
+				CLANG_WARN__DUPLICATE_METHOD_MATCH = YES;
+				GCC_PRECOMPILE_PREFIX_HEADER = YES;
+				GCC_PREFIX_HEADER = "FTP PASV Converter/FTP PASV Converter-Prefix.pch";
+				MACOSX_DEPLOYMENT_TARGET = 10.8;
+				PRODUCT_NAME = "$(TARGET_NAME)";
+			};
+			name = Debug;
+		};
+		531A1D0D1674E32400EA1D82 /* Release */ = {
+			isa = XCBuildConfiguration;
+			buildSettings = {
+				CLANG_CXX_LANGUAGE_STANDARD = "gnu++0x";
+				CLANG_CXX_LIBRARY = "libc++";
+				CLANG_ENABLE_OBJC_ARC = YES;
+				CLANG_WARN_EMPTY_BODY = YES;
+				CLANG_WARN__DUPLICATE_METHOD_MATCH = YES;
+				GCC_PRECOMPILE_PREFIX_HEADER = YES;
+				GCC_PREFIX_HEADER = "FTP PASV Converter/FTP PASV Converter-Prefix.pch";
+				MACOSX_DEPLOYMENT_TARGET = 10.8;
+				PRODUCT_NAME = "$(TARGET_NAME)";
+			};
+			name = Release;
+		};
 		53759E0415CEE8AD00F93127 /* Debug */ = {
 			isa = XCBuildConfiguration;
 			buildSettings = {
@@ -314,6 +420,15 @@
 /* End XCBuildConfiguration section */
 
 /* Begin XCConfigurationList section */
+		531A1D0B1674E32400EA1D82 /* Build configuration list for PBXNativeTarget "FTP PASV Converter" */ = {
+			isa = XCConfigurationList;
+			buildConfigurations = (
+				531A1D0C1674E32400EA1D82 /* Debug */,
+				531A1D0D1674E32400EA1D82 /* Release */,
+			);
+			defaultConfigurationIsVisible = 0;
+			defaultConfigurationName = Release;
+		};
 		53759DF115CEE8AD00F93127 /* Build configuration list for PBXProject "FTP Server" */ = {
 			isa = XCConfigurationList;
 			buildConfigurations = (

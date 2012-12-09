@@ -1,0 +1,7 @@
+//
+// Prefix header for all source files of the 'FTP PASV Converter' target in the 'FTP PASV Converter' project
+//
+
+#ifdef __OBJC__
+	#import <Foundation/Foundation.h>
+#endif
