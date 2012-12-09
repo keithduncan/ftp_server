@@ -45,7 +45,9 @@ static NSString *_AFNetworkTelnetConnectionReadLineContext = @"_AFNetworkTelnetC
 }
 
 - (void)writeReply:(NSUInteger)replyCode mark:(NSString *)mark {
-	NSParameterAssert(mark != nil);
+	if (mark == nil && self.defaultMessageFunction != NULL) {
+		mark = self.defaultMessageFunction(replyCode);
+	}
 	[self _writeReply:replyCode separator:@"-" suffix:mark readLine:NULL];
 }
 

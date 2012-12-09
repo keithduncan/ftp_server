@@ -8,6 +8,15 @@
 
 #import "AFNetworkTelnetConnection.h"
 
+extern NSString *const AFNetworkFTPErrorDomain;
+
+typedef NS_ENUM(NSInteger, AFNetworkFTPErrorCode) {
+	AFNetworkFTPErrorCodeUnknown = 0,
+	
+	AFNetworkFTPErrorCodeNoDataServer = -1,
+	AFNetworkFTPErrorCodeDataAlreadyEnqueued = -2,
+};
+
 @class AFNetworkFTPConnection;
 
 @protocol AFNetworkFTPConnectionDelegate <AFTelnetConnectionDelegate>
@@ -57,14 +66,14 @@
 	Wait for a timeout for a connection to appear on the listening socket, the first connection is accepted.
 	The data server is automatically closed once a data connection is accepted or the timeout occurs.
  */
-- (void)readFirstDataServerConnectionToWriteStream:(NSOutputStream *)outputStream;
+- (BOOL)readFirstDataServerConnectionToWriteStream:(NSOutputStream *)outputStream error:(NSError **)errorRef;
 
 /*!
 	\brief
 	Wait for a timeout for a connection to appear on the listening socket, the first connection is accepted.
 	The data server is automatically closed once a data connection is accepted or the timeout occurs.
  */
-- (void)writeFirstDataServerConnectionFromReadStream:(NSInputStream *)inputStream;
+- (BOOL)writeFirstDataServerConnectionFromReadStream:(NSInputStream *)inputStream error:(NSError **)errorRef;
 
 /*
 	PORT support

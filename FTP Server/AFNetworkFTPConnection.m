@@ -10,6 +10,8 @@
 
 #import "CoreNetworking/CoreNetworking.h"
 
+NSString *const AFNetworkFTPErrorDomain = @"com.thirty-three.corenetworking.ftp";
+
 @interface AFNetworkFTPConnection () <AFNetworkServerDelegate>
 @property (readwrite, retain, nonatomic) AFNetworkServer *dataServer;
 
@@ -55,28 +57,53 @@ AFNETWORK_NSSTRING_CONTEXT(_AFNetworkFTPConnectionDataConnectionWriteContext);
 	
 	[self.dataServer close];
 	self.dataServer = nil;
+	
+	self.dataReadPacket = nil;
+	self.dataWritePacket = nil;
 }
 
 - (BOOL)hasDataServer {
 	return self.dataServer != nil;
 }
 
-- (void)readFirstDataServerConnectionToWriteStream:(NSOutputStream *)outputStream {
-	NSParameterAssert(self.hasDataServer);
-	[self _assertDoesntHavePendingDataConnectionPacket];
+- (BOOL)_checkHasDataServerAndCanEnqueuePacket:(NSError **)errorRef {
+	if (!self.hasDataServer) {
+		if (errorRef != NULL) {
+			*errorRef = [NSError errorWithDomain:AFNetworkFTPErrorDomain code:AFNetworkFTPErrorCodeNoDataServer userInfo:nil];
+		}
+		return NO;
+	}
+	
+	if (self.dataReadPacket != nil || self.dataWritePacket != nil) {
+		if (errorRef != NULL) {
+			*errorRef = [NSError errorWithDomain:AFNetworkFTPErrorDomain code:AFNetworkFTPErrorCodeDataAlreadyEnqueued userInfo:nil];
+		}
+		return NO;
+	}
+	
+	return YES;
+}
+
+- (BOOL)readFirstDataServerConnectionToWriteStream:(NSOutputStream *)outputStream error:(NSError **)errorRef {
+	if (![self _checkHasDataServerAndCanEnqueuePacket:errorRef]) {
+		return NO;
+	}
 	
 	self.dataReadPacket = [[[AFNetworkPacketReadToWriteStream alloc] initWithTotalBytesToRead:-1 writeStream:outputStream] autorelease];
 	
 	[self _startDataConnectionTimeout];
+	return YES;
 }
 
-- (void)writeFirstDataServerConnectionFromReadStream:(NSInputStream *)inputStream {
-	NSParameterAssert(self.hasDataServer);
-	[self _assertDoesntHavePendingDataConnectionPacket];
+- (BOOL)writeFirstDataServerConnectionFromReadStream:(NSInputStream *)inputStream error:(NSError **)errorRef {
+	if (![self _checkHasDataServerAndCanEnqueuePacket:errorRef]) {
+		return NO;
+	}
 	
 	self.dataWritePacket = [[[AFNetworkPacketWriteFromReadStream alloc] initWithTotalBytesToWrite:-1 readStream:inputStream] autorelease];
 	
 	[self _startDataConnectionTimeout];
+	return YES;
 }
 
 - (void)_assertDoesntHavePendingDataConnectionPacket {
@@ -125,11 +152,13 @@ AFNETWORK_NSSTRING_CONTEXT(_AFNetworkFTPConnectionDataConnectionWriteContext);
 	if (readPacket != nil) {
 		[self.dataConnection performRead:readPacket withTimeout:-1 context:&_AFNetworkFTPConnectionDataConnectionReadContext];
 	}
+	self.dataReadPacket = nil;
 	
 	AFNetworkPacket <AFNetworkPacketWriting> *writePacket = self.dataWritePacket;
 	if (writePacket != nil) {
 		[self.dataConnection performWrite:writePacket withTimeout:-1 context:&_AFNetworkFTPConnectionDataConnectionWriteContext];
 	}
+	self.dataWritePacket = nil;
 }
 
 - (void)networkLayer:(id <AFNetworkTransportLayer>)layer didRead:(AFNetworkPacket<AFNetworkPacketReading> *)packet context:(void *)context {
@@ -153,7 +182,7 @@ AFNETWORK_NSSTRING_CONTEXT(_AFNetworkFTPConnectionDataConnectionWriteContext);
 - (void)networkLayer:(id <AFNetworkTransportLayer>)layer didReceiveError:(NSError *)error {
 	if (layer == self.dataConnection) {
 		[self.delegate connection:self dataConnectionDidReceiveError:error];
-		return;
+		[self closeDataServer];
 	}
 	else {
 		[super networkLayer:self didReceiveError:error];
@@ -162,8 +191,8 @@ AFNETWORK_NSSTRING_CONTEXT(_AFNetworkFTPConnectionDataConnectionWriteContext);
 
 - (void)networkLayerDidClose:(id <AFNetworkTransportLayer>)layer {
 	if (layer == self.dataConnection) {
-		
-		return;
+		[self closeDataServer];
+#warning this needs to be reported so that the control channel can write a reply
 	}
 	else {
 		[super networkLayerDidClose:layer];

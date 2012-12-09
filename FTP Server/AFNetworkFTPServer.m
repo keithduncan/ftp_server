@@ -9,92 +9,10 @@
 #import "AFNetworkFTPServer.h"
 
 #import <netdb.h>
+#import <getopt.h>
 
 #import "AFNetworkFTPConnection.h"
-
-typedef AFNETWORK_ENUM(NSUInteger, AFNetworkFTPReplyCode) {
-	AFNetworkFTPReplyCodeAboutToOpenDataConnection					= 150,
-	
-	AFNetworkFTPReplyCodeCommandOK									= 200,
-	AFNetworkFTPReplyCodeCommandNotNeeded							= 202,
-	AFNetworkFTPReplyCodeCommandNoFeatures							= 211,
-	AFNetworkFTPReplyCodeSystemName									= 215,
-	AFNetworkFTPReplyCodeServiceReadyForNewUser						= 220,
-	AFNetworkFTPReplyCodeServiceClosingControlConnection			= 221,
-	AFNetworkFTPReplyCodeEnteringPassiveMode						= 227,
-	AFNetworkFTPReplyCodeUserLoggedIn								= 230,
-	AFNetworkFTPReplyCodeRequestedFileActionOK						= 250,
-	AFNetworkFTPReplyCodePathnameCreated							= 257,
-	
-	AFNetworkFTPReplyCodeUsernameOkayNeedPassword					= 331,
-	AFNetworkFTPReplyCodeUsernameOkayNeedAccount					= 332,
-	
-	AFNetworkFTPReplyCodeCantOpenDataConnection						= 425,
-	AFNetworkFTPReplyCodeRequestedActionAborted						= 451,
-	
-	AFNetworkFTPReplyCodeInternalParsingError						= 500,
-	AFNetworkFTPReplyCodeParameterSyntaxError						= 501,
-	AFNetworkFTPReplyCodeCommandNotImplemented						= 502,
-	AFNetworkFTPReplyCodeBadSequenceOfCommands						= 503,
-	AFNetworkFTPReplyCodeCommandSupportedButParameterUnsupported	= 504,
-	AFNetworkFTPReplyCodeNotLoggedIn								= 530,
-	AFNetworkFTPReplyCodeRequestedFileActionError					= 550,
-};
-
-static NSString *AFNetworkFTPMessageForReplyCode(AFNetworkFTPReplyCode replyCode) {
-	switch (replyCode) {
-		case AFNetworkFTPReplyCodeAboutToOpenDataConnection:
-			return @"About To Open Data Connection";
-			
-		case AFNetworkFTPReplyCodeCommandOK:
-			return @"OK";
-		case AFNetworkFTPReplyCodeCommandNotNeeded:
-			return @"Command Not Needed";
-		case AFNetworkFTPReplyCodeCommandNoFeatures:
-			return @"No Features";
-		case AFNetworkFTPReplyCodeSystemName:
-			break;
-		case AFNetworkFTPReplyCodeServiceReadyForNewUser:
-			return @"Service Ready For New User";
-		case AFNetworkFTPReplyCodeServiceClosingControlConnection:
-			return @"Service Closing Control Connection";
-		case AFNetworkFTPReplyCodeEnteringPassiveMode:
-			break;
-		case AFNetworkFTPReplyCodeUserLoggedIn:
-			return @"User Logged In";
-		case AFNetworkFTPReplyCodeRequestedFileActionOK:
-			return @"Requested File Action OK";
-		case AFNetworkFTPReplyCodePathnameCreated:
-			break;
-			
-		case AFNetworkFTPReplyCodeUsernameOkayNeedPassword:
-			return @"Username Okay Need Password";
-		case AFNetworkFTPReplyCodeUsernameOkayNeedAccount:
-			return @"Username Okay Need Account";
-			
-		case AFNetworkFTPReplyCodeCantOpenDataConnection:
-			return @"Can't Open Data Connection";
-		case AFNetworkFTPReplyCodeRequestedActionAborted:
-			return @"Requested Action Aborted";
-			
-		case AFNetworkFTPReplyCodeInternalParsingError:
-			return @"Internal Parsing Error";
-		case AFNetworkFTPReplyCodeParameterSyntaxError:
-			return @"Parameter Syntax Error";
-		case AFNetworkFTPReplyCodeCommandNotImplemented:
-			return @"Command Not Implemented";
-		case AFNetworkFTPReplyCodeBadSequenceOfCommands:
-			return @"Bad Sequence Of Commands";
-		case AFNetworkFTPReplyCodeCommandSupportedButParameterUnsupported:
-			return @"Command Supported But Parameter Unsupported";
-		case AFNetworkFTPReplyCodeNotLoggedIn:
-			return @"Not Logged In";
-		case AFNetworkFTPReplyCodeRequestedFileActionError:
-			return @"Requested File Action Error";
-	}
-	
-	@throw [NSException exceptionWithName:NSInvalidArgumentException reason:[NSString stringWithFormat:@"%ld doesn't have a default message", replyCode] userInfo:nil];
-}
+#import "AFNetworkFTPMessage.h"
 
 @implementation AFNetworkFTPServer
 
@@ -142,8 +60,7 @@ static NSString *_AFNetworkFTPServerMainContext = @"_AFNetworkFTPServerMainConte
 }
 
 - (NSString *)_resolvePath:(NSString *)encodedPath relativeToConnectionAndReplyIfCant:(AFNetworkFTPConnection *)connection {
-	NSMutableString *decodedPath = [[encodedPath mutableCopy] autorelease];
-	[decodedPath replaceOccurrencesOfString:@"\0" withString:@"\012" options:(NSStringCompareOptions)0 range:NSMakeRange(0, [decodedPath length])];
+	NSString *decodedPath = [self _decodePath:encodedPath];
 	
 	NSArray *decodedPathComponents = [decodedPath pathComponents];
 	if ([decodedPathComponents count] == 0) {
@@ -177,10 +94,15 @@ static NSString *_AFNetworkFTPServerMainContext = @"_AFNetworkFTPServerMainConte
 	return [currentWorkingDirectory stringByAppendingPathComponent:decodedPath];
 }
 
+- (NSString *)_decodePath:(NSString *)path {
+	NSMutableString *decodedPath = [[path mutableCopy] autorelease];
+	[decodedPath replaceOccurrencesOfString:@"\0" withString:@"\n" options:(NSStringCompareOptions)0 range:NSMakeRange(0, [decodedPath length])];
+	return decodedPath;
+}
+
 - (NSString *)_encodePath:(NSString *)path {
 	NSMutableString *encodedPath = [[path mutableCopy] autorelease];
-	[encodedPath replaceOccurrencesOfString:@"\"" withString:@"\"\"" options:(NSStringCompareOptions)0 range:NSMakeRange(0, [encodedPath length])];
-	[encodedPath replaceOccurrencesOfString:@"\012" withString:@"\0" options:(NSStringCompareOptions)0 range:NSMakeRange(0, [encodedPath length])];
+	[encodedPath replaceOccurrencesOfString:@"\n" withString:@"\0" options:(NSStringCompareOptions)0 range:NSMakeRange(0, [encodedPath length])];
 	return encodedPath;
 }
 
@@ -217,6 +139,30 @@ static NSString *_AFNetworkFTPServerMainContext = @"_AFNetworkFTPServerMainConte
 	return [fileSystem executeRequest:request error:errorRef];
 }
 
+- (id)_executeListRequest:(NSString *)encodedPathname forConnection:(AFNetworkFTPConnection *)connection {
+	if ([encodedPathname length] != 0) {
+		/*
+			Note
+			
+			should return metadata about the named file in LIST format, instead we reject these requests for now
+		 */
+		[connection writeReply:AFNetworkFTPReplyCodeCommandSupportedButParameterUnsupported message:nil readLine:&_AFNetworkFTPServerMainContext];
+		return nil;
+	}
+	
+	NSString *workingDirectory = [connection userInfoValueForKey:AFNetworkFTPConnectionWorkingDirectoryPath];
+	AFVirtualFileSystemRequestList *listRequest = [[[AFVirtualFileSystemRequestList alloc] initWithPath:workingDirectory] autorelease];
+	
+	NSError *listError = nil;
+	NSSet *listResponse = [self _executeFileSystemRequest:listRequest authenticate:YES forConnection:connection error:&listError];
+	if (listResponse == nil) {
+		[self _writeReply:connection forListContentsOfContainer:encodedPathname error:listError];
+		return nil;
+	}
+	
+	return listResponse;
+}
+
 - (void)_writeReply:(AFNetworkFTPConnection *)connection forListContentsOfContainer:(NSString *)pathname error:(NSError *)error {
 	NSString *message = nil;
 	
@@ -242,6 +188,30 @@ static NSString *_AFNetworkFTPServerMainContext = @"_AFNetworkFTPServerMainConte
 	
 	[connection writeReply:AFNetworkFTPReplyCodeRequestedFileActionError message:message readLine:&_AFNetworkFTPServerMainContext];
 }
+
+- (void)_writeDataReply:(AFNetworkFTPConnection *)connection bodyData:(NSData *)bodyData {
+	NSError *writeError = nil;
+	BOOL write = [connection writeFirstDataServerConnectionFromReadStream:[NSInputStream inputStreamWithData:bodyData] error:&writeError];
+	if (!write) {
+		if ([[writeError domain] isEqualToString:AFNetworkFTPErrorDomain]) {
+			if ([writeError code] == AFNetworkFTPErrorCodeNoDataServer) {
+				[connection writeReply:AFNetworkFTPReplyCodeRequestedActionAborted message:@"data connection must be established first using PASV or PORT" readLine:&_AFNetworkFTPServerMainContext];
+				return;
+			}
+			if ([writeError code] == AFNetworkFTPErrorCodeDataAlreadyEnqueued) {
+				[connection writeReply:AFNetworkFTPReplyCodeRequestedActionAborted message:@"data connection already established, wait for the first operation to complete" readLine:&_AFNetworkFTPServerMainContext];
+				return;
+			}
+		}
+		
+		[connection writeReply:AFNetworkFTPReplyCodeRequestedActionAborted message:@"unknown data connection error" readLine:&_AFNetworkFTPServerMainContext];
+		return;
+	}
+	
+#warning needs to write a response on the control channel after the data transfer is complete
+}
+
+- (void)_readDataRequest:(AFNetworkFTPConnection *)
 
 - (void)connection:(AFNetworkFTPConnection *)connection didWriteReply:(NSData *)reply context:(void *)context {
 	fprintf(stderr, "< %s", [[[[NSString alloc] initWithData:reply encoding:NSASCIIStringEncoding] autorelease] UTF8String]);
@@ -384,7 +354,8 @@ static NSString *_AFNetworkFTPServerMainContext = @"_AFNetworkFTPServerMainConte
 	void (^parsePwdCommand)(NSString *) = ^ (NSString *parameter) {
 		NSString *workingDirectoryPath = [connection userInfoValueForKey:AFNetworkFTPConnectionWorkingDirectoryPath];
 		
-		NSString *encodedPath = [self _encodePath:workingDirectoryPath];
+		NSMutableString *encodedPath = [[[self _encodePath:workingDirectoryPath] mutableCopy] autorelease];
+		[encodedPath replaceOccurrencesOfString:@"\"" withString:@"\"\"" options:(NSStringCompareOptions)0 range:NSMakeRange(0, [encodedPath length])];
 		
 		[connection writeReply:AFNetworkFTPReplyCodePathnameCreated message:[NSString stringWithFormat:@"\"%@\"", encodedPath] readLine:&_AFNetworkFTPServerMainContext];
 	};
@@ -473,7 +444,9 @@ static NSString *_AFNetworkFTPServerMainContext = @"_AFNetworkFTPServerMainConte
 			} while (0);
 		}
 		
-		NSString *encodedPath = [self _encodePath:[create absolutePath]];
+		NSMutableString *encodedPath = [[[self _encodePath:[create absolutePath]] mutableCopy] autorelease];
+		[encodedPath replaceOccurrencesOfString:@"\"" withString:@"\"\"" options:(NSStringCompareOptions)0 range:NSMakeRange(0, [encodedPath length])];
+		
 		[connection writeReply:AFNetworkFTPReplyCodePathnameCreated message:[NSString stringWithFormat:@"\"%@\"", encodedPath] readLine:&_AFNetworkFTPServerMainContext];
 	};
 	tryParseCommand(@"MKD", parseMkdCommand);
@@ -603,34 +576,16 @@ static NSString *_AFNetworkFTPServerMainContext = @"_AFNetworkFTPServerMainConte
 	});
 #endif
 	
-	tryParseCommand(@"LIST", ^ (NSString *encodedPathname) {
-		if ([encodedPathname length] != 0) {
-			/*
-				Note
-				
-				should return metadata about the named file in LIST format, instead we reject these requests for now
-			 */
-			[connection writeReply:AFNetworkFTPReplyCodeCommandSupportedButParameterUnsupported message:nil readLine:&_AFNetworkFTPServerMainContext];
-			return;
-		}
+	/*
+		Note
 		
-		NSString *workingDirectory = [connection userInfoValueForKey:AFNetworkFTPConnectionWorkingDirectoryPath];
-		AFVirtualFileSystemRequestList *listRequest = [[[AFVirtualFileSystemRequestList alloc] initWithPath:workingDirectory] autorelease];
-		
-		NSError *listError = nil;
-		NSSet *listResponse = [self _executeFileSystemRequest:listRequest authenticate:YES forConnection:connection error:&listError];
+		this uses the EPLF defined here <http://cr.yp.to/ftp/list/eplf.html>
+	 */
+	tryParseCommand(@"EPLF", ^ (NSString *encodedPathname) {
+		id listResponse = [self _executeListRequest:encodedPathname forConnection:connection];
 		if (listResponse == nil) {
-			[self _writeReply:connection forListContentsOfContainer:encodedPathname error:listError];
 			return;
 		}
-		
-		[connection writeReply:AFNetworkFTPReplyCodeAboutToOpenDataConnection mark:nil];
-		
-		/*
-			Note
-			
-			this uses the EPLF defined here <http://cr.yp.to/ftp/list/eplf.html>
-		 */
 		
 		NSMutableData *listData = [NSMutableData data];
 		
@@ -638,7 +593,7 @@ static NSString *_AFNetworkFTPServerMainContext = @"_AFNetworkFTPServerMainConte
 		
 		for (AFVirtualFileSystemNode *currentNode in listResponse) {
 			if (appendedObject) {
-				[listData appendBytes:"\015\012" length:2];
+				[listData appendBytes:"\r\n" length:2];
 			}
 			appendedObject = YES;
 			
@@ -666,14 +621,198 @@ static NSString *_AFNetworkFTPServerMainContext = @"_AFNetworkFTPServerMainConte
 			[currentObjectLine appendBytes:"\t" length:1];
 			
 			NSString *objectPathname = [currentNode.absolutePath lastPathComponent];
-			[currentObjectLine appendData:[objectPathname dataUsingEncoding:NSASCIIStringEncoding]];
+			objectPathname = [self _encodePath:objectPathname];
+			[currentObjectLine appendData:[objectPathname dataUsingEncoding:NSUTF8StringEncoding]];
 			
 			[listData appendData:currentObjectLine];
 		}
 		
-		[connection writeFirstDataServerConnectionFromReadStream:[NSInputStream inputStreamWithData:listData]];
+		[self _writeDataConnectionReply:listData];
 		
 #warning should write a reply on the control connection dependent on the close status of the data connection
+	});
+	
+	tryParseCommand(@"LIST", ^ (NSString *parameters) {
+		void (^replyUnknownParameters)(void) = ^ {
+			[connection writeReply:AFNetworkFTPReplyCodeCommandSupportedButParameterUnsupported message:@"unknown parameters" readLine:&_AFNetworkFTPServerMainContext];
+		};
+		
+		NSString *wordSeparator = @" ";
+		NSArray *words = [parameters componentsSeparatedByString:wordSeparator];
+		
+		int argc = (int)[words count];
+		char const **argv = alloca(argc * sizeof(char *));
+		
+		__block BOOL allWordsIncluded = YES;
+		[words enumerateObjectsUsingBlock:^ (NSString *currentWord, NSUInteger currentWordIdx, BOOL *stopEnumeratingWords) {
+			NSStringEncoding encoding = NSUTF8StringEncoding;
+			if (![currentWord canBeConvertedToEncoding:encoding]) {
+				*stopEnumeratingWords = YES;
+				
+				allWordsIncluded = NO;
+				return;
+			}
+			
+			argv[currentWordIdx] = [currentWord cStringUsingEncoding:encoding];
+		}];
+		if (!allWordsIncluded) {
+			replyUnknownParameters();
+			return;
+		}
+		
+		/*
+			Note
+			
+			support -a and -l flags
+		 */
+		static struct option const options[] = {
+			{},
+		};
+		int option = 0;
+		while ((option = getopt_long(argc, (char * const *)argv, "al", options, NULL)) != 0) {
+			switch (option) {
+				case 'a':
+				{
+					break;
+				}
+				case 'l':
+				{
+					break;
+				}
+				default:
+				{
+					replyUnknownParameters();
+					return;
+				}
+			}
+		}
+		
+		id listResponse = [self _executeListRequest:nil forConnection:connection];
+		if (listResponse == nil) {
+			return;
+		}
+		
+		NSDate *fakeLastModifiedDate = [NSDate date];
+		NSDateFormatter *dateFormatter = [[[NSDateFormatter alloc] init] autorelease];
+		[dateFormatter setLocale:[[[NSLocale alloc] initWithLocaleIdentifier:@"en_US_POSIX"] autorelease]];
+		
+		NSMutableData *listData = [NSMutableData data];
+		
+		BOOL appendedObject = NO;
+		
+		for (AFVirtualFileSystemNode *currentNode in listResponse) {
+			if (appendedObject) {
+				[listData appendBytes:"\r\n" length:2];
+			}
+			appendedObject = YES;
+			
+			NSMutableData *currentObjectLine = [NSMutableData data];
+			
+			/*
+				Note
+				
+				we don't actually implement BSD based user permissions
+				
+				our current file system API doesn't support it either
+				
+				we default to 'owner' and 'group', deal with it
+				
+				we also don't support anything other than containers and objects
+				if support for links are added in the future support will need to be added here too
+			 */
+			char const *linePrefix = NULL;
+			if (currentNode.nodeType == AFVirtualFileSystemNodeTypeContainer) {
+				linePrefix = "drw-r--r-- 1 owner group";
+			}
+			else if (currentNode.nodeType == AFVirtualFileSystemNodeTypeObject) {
+				linePrefix = "-rwxr-xr-x 1 owner group";
+			}
+			if (linePrefix == NULL) {
+				listData = nil;
+				break;
+			}
+			[currentObjectLine appendBytes:linePrefix length:strlen(linePrefix)];
+			
+			[currentObjectLine appendBytes:" " length:1];
+			
+			char objectSize[13] = {};
+			memset(objectSize, ' ', sizeof(objectSize));
+			objectSize[12] = '0';
+			[currentObjectLine appendBytes:objectSize length:sizeof(objectSize)];
+			
+			[currentObjectLine appendBytes:" " length:1];
+			
+			/*
+				Note
+				
+				lie about the modified date because our file sytem API doesn't support reading modification times
+				
+				rather than statically returning the epoch say it was modified this second
+			 */
+			NSMutableString *lastModifiedDateString = [NSMutableString string];
+			do {
+				{
+					[dateFormatter setDateFormat:@"MMMM"];
+					
+					NSMutableString *month = [[[dateFormatter stringForObjectValue:fakeLastModifiedDate] mutableCopy] autorelease];
+					
+					NSUInteger desiredMonthLength = 3;
+					CFStringPad((CFMutableStringRef)month, CFSTR(" "), desiredMonthLength, 0);
+					
+					[lastModifiedDateString appendString:[month capitalizedString]];
+				}
+				
+				{
+					[dateFormatter setDateFormat:@"d"];
+					
+					NSString *day = [dateFormatter stringForObjectValue:fakeLastModifiedDate];
+					
+					NSUInteger desiredDayLength = 3;
+					NSInteger prefixLength = (desiredDayLength - [day length]);
+					if (prefixLength < 0) {
+						lastModifiedDateString = nil;
+						break;
+					}
+					
+					CFStringPad((CFMutableStringRef)lastModifiedDateString, CFSTR(" "), [lastModifiedDateString length] + prefixLength, 0);
+					[lastModifiedDateString appendString:day];
+				}
+				
+				[lastModifiedDateString appendString:@" "];
+				
+				{
+					[dateFormatter setDateFormat:@"HH:mm"];
+					NSString *time = [dateFormatter stringFromDate:fakeLastModifiedDate];
+					[lastModifiedDateString appendString:time];
+				}
+			} while (0);
+			
+			NSData *listModifiedDateStringData = [lastModifiedDateString dataUsingEncoding:NSASCIIStringEncoding];
+			if (listModifiedDateStringData == nil) {
+				listData = nil;
+				break;
+			}
+			[currentObjectLine appendData:listModifiedDateStringData];
+			
+			[currentObjectLine appendBytes:" " length:1];
+			
+			NSString *filename = [currentNode.absolutePath lastPathComponent];
+			NSString *encodedFilename = [self _encodePath:filename];
+			NSData *encodedFilenameData = [encodedFilename dataUsingEncoding:NSUTF8StringEncoding];
+			if (encodedFilenameData == nil) {
+				listData = nil;
+				break;
+			}
+			[currentObjectLine appendData:encodedFilenameData];
+			
+			[listData appendData:currentObjectLine];
+		}
+		if (listData == nil) {
+			[connection writeReply:AFNetworkFTPReplyCodeRequestedActionAborted message:nil readLine:&_AFNetworkFTPServerMainContext];
+			return;
+		}
+		
+		[self _writeDataReply:connection bodyData:listData];
 	});
 	
 #if 0
@@ -770,11 +909,12 @@ static NSString *_AFNetworkFTPServerMainContext = @"_AFNetworkFTPServerMainConte
 	
 }
 
-- (void)connectionDidReadDataToWriteStream:(AFNetworkFTPConnection *)connection {
-	
+- (void)connectionDidWriteDataFromReadStream:(AFNetworkFTPConnection *)connection {
+	[connection writeReply:AFNetworkFTPReplyCodeServiceClosingDataConnection message:nil readLine:&_AFNetworkFTPServerMainContext];
+	[connection closeDataServer];
 }
 
-- (void)connectionDidWriteDataFromReadStream:(AFNetworkFTPConnection *)connection {
+- (void)connectionDidReadDataToWriteStream:(AFNetworkFTPConnection *)connection {
 	
 }
 

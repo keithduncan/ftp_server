@@ -15,9 +15,25 @@
 
 #pragma mark -
 
+id <AFVirtualFileSystem> MakeFileSystem(void) {
+	id <AFVirtualFileSystem> fileSystem = [[[AFInMemoryFileSystem alloc] init] autorelease];
+	
+	void (^createDirectoryWithName)(NSString *) = ^ void (NSString *name) {
+		AFVirtualFileSystemRequestCreate *createRequest = [[[AFVirtualFileSystemRequestCreate alloc] initWithPath:[@"/" stringByAppendingPathComponent:name] nodeType:AFVirtualFileSystemNodeTypeContainer] autorelease];
+		id createResponse = [fileSystem executeRequest:createRequest error:NULL];
+		NSCParameterAssert(createResponse != nil);
+	};
+	NSArray *directoryNames = @[ @"Applications", @"Developer", @"Library", @"System", @"Users" ];
+	[directoryNames enumerateObjectsUsingBlock:(void (^)(id, NSUInteger, BOOL *))createDirectoryWithName];
+	
+	return fileSystem;
+}
+
 void server_main(void) {
+	id <AFVirtualFileSystem> newFileSystem = MakeFileSystem();
+	
 	AFNetworkFTPServer *server = [AFNetworkFTPServer server];
-	server.fileSystem = [[[AFInMemoryFileSystem alloc] init] autorelease];
+	server.fileSystem = newFileSystem;
 	
 	BOOL openSockets = [server openInternetSocketsWithSocketSignature:AFNetworkSocketSignatureInternetTCP scope:AFNetworkInternetSocketScopeGlobal port:5000 errorHandler:nil];
 	NSCParameterAssert(openSockets);
