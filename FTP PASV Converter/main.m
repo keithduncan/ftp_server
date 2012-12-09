@@ -10,7 +10,7 @@
 
 static void Usage(int argc, char const **argv)
 {
-	NSLog(@"Usage: %s h1,h2,h3,h4,p1,p2", argv[0]);
+	fprintf(stderr, "Usage: %s h1,h2,h3,h4,p1,p2\n", argv[0]);
 }
 
 int main(int argc, char const **argv)
@@ -46,7 +46,7 @@ int main(int argc, char const **argv)
 		
 		int port = ((p1 * 256) + p2);
 		
-		NSLog(@"%d.%d.%d.%d %d", h1, h2, h3, h4, port);
+		printf("%d.%d.%d.%d %d", h1, h2, h3, h4, port);
 	}
     return 0;
 }

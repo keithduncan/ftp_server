@@ -189,9 +189,11 @@ static NSString *_AFNetworkFTPServerMainContext = @"_AFNetworkFTPServerMainConte
 	[connection writeReply:AFNetworkFTPReplyCodeRequestedFileActionError message:message readLine:&_AFNetworkFTPServerMainContext];
 }
 
-- (void)_writeDataReply:(AFNetworkFTPConnection *)connection bodyData:(NSData *)bodyData {
+- (void)_writeDataReply:(AFNetworkFTPConnection *)connection bodyStream:(NSInputStream *)bodyStream {
+	[connection writeReply:AFNetworkFTPReplyCodeAboutToOpenDataConnection message:nil readLine:NULL];
+	
 	NSError *writeError = nil;
-	BOOL write = [connection writeFirstDataServerConnectionFromReadStream:[NSInputStream inputStreamWithData:bodyData] error:&writeError];
+	BOOL write = [connection writeFirstDataServerConnectionFromReadStream:bodyStream error:&writeError];
 	if (!write) {
 		if ([[writeError domain] isEqualToString:AFNetworkFTPErrorDomain]) {
 			if ([writeError code] == AFNetworkFTPErrorCodeNoDataServer) {
@@ -211,7 +213,11 @@ static NSString *_AFNetworkFTPServerMainContext = @"_AFNetworkFTPServerMainConte
 #warning needs to write a response on the control channel after the data transfer is complete
 }
 
-- (void)_readDataRequest:(AFNetworkFTPConnection *)
+- (void)_readDataRequest:(AFNetworkFTPConnection *)connection bodyStream:(NSOutputStream *)bodyStream {
+	[self doesNotRecognizeSelector:_cmd];
+	
+#warning needs to write a response on the control channel after the data transfer is complete
+}
 
 - (void)connection:(AFNetworkFTPConnection *)connection didWriteReply:(NSData *)reply context:(void *)context {
 	fprintf(stderr, "< %s", [[[[NSString alloc] initWithData:reply encoding:NSASCIIStringEncoding] autorelease] UTF8String]);
@@ -627,9 +633,7 @@ static NSString *_AFNetworkFTPServerMainContext = @"_AFNetworkFTPServerMainConte
 			[listData appendData:currentObjectLine];
 		}
 		
-		[self _writeDataConnectionReply:listData];
-		
-#warning should write a reply on the control connection dependent on the close status of the data connection
+		[self _writeDataReply:connection bodyStream:[NSInputStream inputStreamWithData:listData]];
 	});
 	
 	tryParseCommand(@"LIST", ^ (NSString *parameters) {
@@ -669,7 +673,7 @@ static NSString *_AFNetworkFTPServerMainContext = @"_AFNetworkFTPServerMainConte
 			{},
 		};
 		int option = 0;
-		while ((option = getopt_long(argc, (char * const *)argv, "al", options, NULL)) != 0) {
+		while ((option = getopt_long(argc, (char * const *)argv, "al", options, NULL)) != -1) {
 			switch (option) {
 				case 'a':
 				{
@@ -679,6 +683,8 @@ static NSString *_AFNetworkFTPServerMainContext = @"_AFNetworkFTPServerMainConte
 				{
 					break;
 				}
+				case ':':
+				case '?':
 				default:
 				{
 					replyUnknownParameters();
@@ -698,14 +704,7 @@ static NSString *_AFNetworkFTPServerMainContext = @"_AFNetworkFTPServerMainConte
 		
 		NSMutableData *listData = [NSMutableData data];
 		
-		BOOL appendedObject = NO;
-		
 		for (AFVirtualFileSystemNode *currentNode in listResponse) {
-			if (appendedObject) {
-				[listData appendBytes:"\r\n" length:2];
-			}
-			appendedObject = YES;
-			
 			NSMutableData *currentObjectLine = [NSMutableData data];
 			
 			/*
@@ -735,6 +734,7 @@ static NSString *_AFNetworkFTPServerMainContext = @"_AFNetworkFTPServerMainConte
 			
 			[currentObjectLine appendBytes:" " length:1];
 			
+			// Note: should include the actual object size and not 0
 			char objectSize[13] = {};
 			memset(objectSize, ' ', sizeof(objectSize));
 			objectSize[12] = '0';
@@ -805,6 +805,8 @@ static NSString *_AFNetworkFTPServerMainContext = @"_AFNetworkFTPServerMainConte
 			}
 			[currentObjectLine appendData:encodedFilenameData];
 			
+			[currentObjectLine appendBytes:"\r\n" length:2];
+			
 			[listData appendData:currentObjectLine];
 		}
 		if (listData == nil) {
@@ -812,7 +814,7 @@ static NSString *_AFNetworkFTPServerMainContext = @"_AFNetworkFTPServerMainConte
 			return;
 		}
 		
-		[self _writeDataReply:connection bodyData:listData];
+		[self _writeDataReply:connection bodyStream:[NSInputStream inputStreamWithData:listData]];
 	});
 	
 #if 0
@@ -880,9 +882,7 @@ static NSString *_AFNetworkFTPServerMainContext = @"_AFNetworkFTPServerMainConte
 		
 		[connection writeReply:AFNetworkFTPReplyCodeAboutToOpenDataConnection mark:nil];
 		
-		[connection readFirstDataServerConnectionToWriteStream:writeStream];
-		
-#warning we should write a reply on the control connection dependent on the close status of the data connection
+		[self _readDataRequest:connection bodyStream:writeStream];
 	});
 	
 	tryParseCommand(@"QUIT", ^ (NSString *parameter) {

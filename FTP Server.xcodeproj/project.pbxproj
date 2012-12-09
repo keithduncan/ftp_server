@@ -64,7 +64,7 @@
 /* End PBXCopyFilesBuildPhase section */
 
 /* Begin PBXFileReference section */
-		531A1D011674E32400EA1D82 /* FTP PASV Converter */ = {isa = PBXFileReference; explicitFileType = "compiled.mach-o.executable"; includeInIndex = 0; path = "FTP PASV Converter"; sourceTree = BUILT_PRODUCTS_DIR; };
+		531A1D011674E32400EA1D82 /* pasv_converter */ = {isa = PBXFileReference; explicitFileType = "compiled.mach-o.executable"; includeInIndex = 0; path = pasv_converter; sourceTree = BUILT_PRODUCTS_DIR; };
 		531A1D051674E32400EA1D82 /* main.m */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.c.objc; path = main.m; sourceTree = "<group>"; };
 		531A1D081674E32400EA1D82 /* FTP PASV Converter-Prefix.pch */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.c.h; path = "FTP PASV Converter-Prefix.pch"; sourceTree = "<group>"; };
 		533F3014165BEF2000E327D4 /* AFVirtualFileSystem.h */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.c.h; path = AFVirtualFileSystem.h; sourceTree = "<group>"; };
@@ -139,7 +139,7 @@
 			isa = PBXGroup;
 			children = (
 				53759DF715CEE8AD00F93127 /* FTP Server */,
-				531A1D011674E32400EA1D82 /* FTP PASV Converter */,
+				531A1D011674E32400EA1D82 /* pasv_converter */,
 			);
 			name = Products;
 			sourceTree = "<group>";
@@ -210,7 +210,7 @@
 			);
 			name = "FTP PASV Converter";
 			productName = "FTP PASV Converter";
-			productReference = 531A1D011674E32400EA1D82 /* FTP PASV Converter */;
+			productReference = 531A1D011674E32400EA1D82 /* pasv_converter */;
 			productType = "com.apple.product-type.tool";
 		};
 		53759DF615CEE8AD00F93127 /* FTP Server */ = {
@@ -333,7 +333,7 @@
 				GCC_PRECOMPILE_PREFIX_HEADER = YES;
 				GCC_PREFIX_HEADER = "FTP PASV Converter/FTP PASV Converter-Prefix.pch";
 				MACOSX_DEPLOYMENT_TARGET = 10.8;
-				PRODUCT_NAME = "$(TARGET_NAME)";
+				PRODUCT_NAME = pasv_converter;
 			};
 			name = Debug;
 		};
@@ -348,7 +348,7 @@
 				GCC_PRECOMPILE_PREFIX_HEADER = YES;
 				GCC_PREFIX_HEADER = "FTP PASV Converter/FTP PASV Converter-Prefix.pch";
 				MACOSX_DEPLOYMENT_TARGET = 10.8;
-				PRODUCT_NAME = "$(TARGET_NAME)";
+				PRODUCT_NAME = pasv_converter;
 			};
 			name = Release;
 		};
