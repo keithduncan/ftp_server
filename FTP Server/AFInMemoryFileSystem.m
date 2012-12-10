@@ -9,11 +9,12 @@
 #import "AFInMemoryFileSystem.h"
 
 #import <libkern/OSAtomic.h>
+#import <objc/objc-sync.h>
 #import "CoreNetworking/CoreNetworking.h"
 
 #import "AFVirtualFileSystemNode+AFVirtualFileSystemPrivate.h"
 
-@interface _AFInMemoryFileSystemNode : NSObject <NSLocking>
+@interface _AFInMemoryFileSystemNode : NSObject
 
 - (id)initWithName:(NSString *)name nodeType:(AFVirtualFileSystemNodeType)nodeType;
 
@@ -22,9 +23,7 @@
 
 @end
 
-@implementation _AFInMemoryFileSystemNode {
-	NSLock *_lock;
-}
+@implementation _AFInMemoryFileSystemNode
 
 - (id)initWithName:(NSString *)name nodeType:(AFVirtualFileSystemNodeType)nodeType {
 	self = [self init];
@@ -33,24 +32,13 @@
 	_name = [name copy];
 	_nodeType = nodeType;
 	
-	_lock = [[NSLock alloc] init];
-	
 	return self;
 }
 
 - (void)dealloc {
 	[_name release];
-	[_lock release];
 	
 	[super dealloc];
-}
-
-- (void)lock {
-	[_lock lock];
-}
-
-- (void)unlock {
-	[_lock unlock];
 }
 
 @end
@@ -85,128 +73,7 @@
 + (id)outputStreamToFileSystem:(AFInMemoryFileSystem *)fileSystem updateRequest:(AFVirtualFileSystemRequestUpdate *)updateRequest;
 
 @property (retain, nonatomic) AFInMemoryFileSystem *fileSystem;
-@property (copy, nonatomic) AFVirtualFileSystemRequestUpdate *updateRequest;
-
-@end
-
-@implementation _AFInMemoryFileSystemOutputStream {
-	NSMutableData *_data;
-	
-	NSStreamStatus _status;
-	
-	id <NSStreamDelegate> _delegate;
-}
-
-@synthesize fileSystem=_fileSystem;
-@synthesize updateRequest=_updateRequest;
-
-+ (id)outputStreamToFileSystem:(AFInMemoryFileSystem *)fileSystem updateRequest:(AFVirtualFileSystemRequestUpdate *)updateRequest {
-	_AFInMemoryFileSystemOutputStream *stream = [[[self alloc] init] autorelease];
-	stream.fileSystem = fileSystem;
-	stream.updateRequest = updateRequest;
-	return stream;
-}
-
-- (id)init {
-	self = [super init];
-	if (self == nil) {
-		return nil;
-	}
-	
-	_data = [[NSMutableData alloc] init];
-	
-	return self;
-}
-
-- (void)dealloc {
-	[_fileSystem release];
-	[_updateRequest release];
-	
-	[super dealloc];
-}
-
-- (void)open {
-	NSParameterAssert(self.streamStatus == NSStreamStatusNotOpen);
-	[self _setStatusAndNotify:NSStreamStatusOpen];
-	
-#warning should we increment the operation count of the file system here instead of in the perform request method?
-}
-
-- (void)close {
-	if (self.streamStatus == NSStreamStatusOpen) {
-#warning perform the data swap in the file system
-		
-#warning decrement the transaction count of the file system too
-	}
-	
-	[self _setStatusAndNotify:NSStreamStatusClosed];
-}
-
-- (id <NSStreamDelegate>)delegate {
-	return _delegate;
-}
-
-- (void)setDelegate:(id <NSStreamDelegate>)delegate {
-	_delegate = (delegate ? : (id)self);
-}
-
-- (void)_setStatusAndNotify:(NSStreamStatus)status {
-	_status = status;
-	
-	if (![self.delegate respondsToSelector:@selector(stream:handleEvent:)]) {
-		return;
-	}
-	
-	struct StatusToEvent {
-		NSStreamStatus status;
-		NSStreamEvent event;
-	} statusToEventMap[] = {
-		{ .status = NSStreamStatusOpen, .event = NSStreamEventOpenCompleted },
-		{ .status = NSStreamStatusAtEnd, .event = NSStreamEventEndEncountered },
-		{ .status = NSStreamStatusError, .event = NSStreamEventErrorOccurred },
-	};
-	for (NSUInteger idx = 0; idx < sizeof(statusToEventMap)/sizeof(*statusToEventMap); idx++) {
-		if (statusToEventMap[idx].status != status) {
-			continue;
-		}
-		
-		[self.delegate stream:self handleEvent:statusToEventMap[idx].event];
-		break;
-	}
-}
-
-- (id)propertyForKey:(NSString *)key {
-	return nil;
-}
-
-- (BOOL)setProperty:(id)property forKey:(NSString *)key {
-	return NO;
-}
-
-- (void)scheduleInRunLoop:(NSRunLoop *)aRunLoop forMode:(NSString *)mode {
-	//nop
-}
-
-- (void)removeFromRunLoop:(NSRunLoop *)aRunLoop forMode:(NSString *)mode {
-	//nop
-}
-
-- (NSStreamStatus)streamStatus {
-	return _status;
-}
-
-- (NSError *)streamError {
-	return nil;
-}
-
-- (BOOL)hasSpaceAvailable {
-	return YES;
-}
-
-- (NSInteger)write:(uint8_t const *)buffer maxLength:(NSUInteger)maxLength {
-	[_data appendBytes:buffer length:maxLength];
-	return maxLength;
-}
+@property (retain, nonatomic) AFVirtualFileSystemRequestUpdate *updateRequest;
 
 @end
 
@@ -215,6 +82,11 @@
 @interface AFInMemoryFileSystem ()
 @property (assign, nonatomic) CFTreeRef treeRoot;
 @property (assign, nonatomic) int64_t pendingTransactionCount;
+@end
+
+@interface AFInMemoryFileSystem ()
+- (BOOL)_tryIncreasePendingTransactionCount;
+- (void)_decrementPendingTransactionCount;
 @end
 
 @implementation AFInMemoryFileSystem
@@ -261,7 +133,7 @@ static CFTreeContext const _AFInMemoryFileSystemTreeContext = {
 			NSDictionary *errorInfo = @{
 				NSLocalizedDescriptionKey : NSLocalizedString(@"Cannot mount while already mounted", @"AFInMemoryFileSystem mount from unknown state error description"),
 			};
-			*errorRef = [NSError errorWithDomain:AFVirtualFileSystemErrorDomain code:AFVirtualFileSystemErrorCodeBusy userInfo:errorInfo];
+			*errorRef = [NSError errorWithDomain:AFVirtualFileSystemErrorDomain code:AFVirtualFileSystemErrorCodeAlreadyMounted userInfo:errorInfo];
 		}
 		return NO;
 	}
@@ -313,13 +185,22 @@ static CFTreeContext const _AFInMemoryFileSystemTreeContext = {
 }
 
 static id _AFTreeGetInfo(CFTreeRef node) {
-	CFTreeContext context = {};
-	CFTreeGetContext(node, &context);
-	return [[(id)context.info retain] autorelease];
+	@synchronized ((id)node) {
+		CFTreeContext context = {};
+		CFTreeGetContext(node, &context);
+		return [[(id)context.info retain] autorelease];
+	}
+}
+
+static void _AFTreeSetInfo(CFTreeRef node, id info) {
+	@synchronized ((id)node) {
+		CFTreeContext context = _AFInMemoryFileSystemTreeContext;
+		context.info = info;
+		CFTreeSetContext(node, &context);
+	}
 }
 
 - (CFTreeRef)_childOfLockedNode:(CFTreeRef)root withPathComponent:(NSString *)pathComponent CF_RETURNS_RETAINED {
-	CFTreeRef child = NULL;
 	NSUInteger childCount = CFTreeGetChildCount(root);
 	for (NSUInteger idx = 0; idx < childCount; idx++) {
 		CFTreeRef currentChild = CFTreeGetChildAtIndex(root, idx);
@@ -329,24 +210,16 @@ static id _AFTreeGetInfo(CFTreeRef node) {
 			continue;
 		}
 		
-		child = currentChild;
+		return (CFTreeRef)CFRetain(currentChild);
 	}
 	
-	if (child != NULL) {
-		CFRetain(child);
-	}
-	
-	return child;
+	return NULL;
 }
 
 - (CFTreeRef)_childOfNode:(CFTreeRef)root withPathComponent:(NSString *)pathComponent CF_RETURNS_RETAINED {
-	_AFInMemoryFileSystemNode *rootNode = _AFTreeGetInfo(root);
-	[rootNode lock];
-	
-	CFTreeRef child = [self _childOfLockedNode:root withPathComponent:pathComponent];
-	
-	[rootNode unlock];
-	return child;
+	@synchronized ((id)root) {
+		return [self _childOfLockedNode:root withPathComponent:pathComponent];
+	}
 }
 
 - (CFTreeRef)_childOfNode:(CFTreeRef)root withPath:(NSString *)path CF_RETURNS_RETAINED {
@@ -390,7 +263,7 @@ static id _AFTreeGetInfo(CFTreeRef node) {
 }
 
 - (CFTreeRef)_containerWithPath:(NSString *)path error:(NSError **)errorRef CF_RETURNS_RETAINED {
-	CFTreeRef container = (CFTreeRef)[(id)[self _nodeWithPath:path] autorelease];
+	CFTreeRef container = [self _nodeWithPath:path];
 	if (container == NULL) {
 		if (errorRef != NULL) {
 			*errorRef = [NSError errorWithDomain:AFVirtualFileSystemErrorDomain code:AFVirtualFileSystemErrorCodeNoNodeExists userInfo:nil];
@@ -444,15 +317,13 @@ static id _AFTreeGetInfo(CFTreeRef node) {
 		NSString *createPath = createRequest.path;
 		
 		NSString *containerPath = [createPath stringByDeletingLastPathComponent];
-		CFTreeRef container = [self _containerWithPath:containerPath error:errorRef];
+		CFTreeRef container = (CFTreeRef)[(id)[self _containerWithPath:containerPath error:errorRef] autorelease];
 		if (container == NULL) {
 			if (errorRef != NULL) {
 				*errorRef = [NSError errorWithDomain:AFVirtualFileSystemErrorDomain code:AFVirtualFileSystemErrorCodeNoNodeExists userInfo:nil];
 			}
 			return nil;
 		}
-		
-		_AFInMemoryFileSystemNode *containerNode = _AFTreeGetInfo(container);
 		
 		/*
 			Note
@@ -461,12 +332,14 @@ static id _AFTreeGetInfo(CFTreeRef node) {
 			
 			mutual exclusion prevents concurrent callers from simultaneously creating a node with `nodeName` in the same container
 		 */
-		[containerNode lock];
+		int enter = objc_sync_enter((id)container);
+		NSParameterAssert(enter == OBJC_SYNC_SUCCESS);
 		
 		NSString *objectName = [createPath lastPathComponent];
 		CFTreeRef existingChild = (CFTreeRef)[(id)[self _childOfLockedNode:container withPathComponent:objectName] autorelease];
 		if (existingChild != NULL) {
-			[containerNode unlock];
+			int exit = objc_sync_exit((id)container);
+			NSParameterAssert(exit == OBJC_SYNC_SUCCESS);
 			
 			_AFInMemoryFileSystemNode *existingChildNode = _AFTreeGetInfo(existingChild);
 			
@@ -493,7 +366,8 @@ static id _AFTreeGetInfo(CFTreeRef node) {
 		
 		CFTreeAppendChild(container, newChild);
 		
-		[containerNode unlock];
+		int exit = objc_sync_exit((id)container);
+		NSParameterAssert(exit == OBJC_SYNC_SUCCESS);
 		
 		return [[[AFVirtualFileSystemNode alloc] initWithAbsolutePath:createPath nodeType:createRequest.nodeType] autorelease];
 	}
@@ -521,22 +395,20 @@ static id _AFTreeGetInfo(CFTreeRef node) {
 			return nil;
 		}
 		
-		_AFInMemoryFileSystemNode *containerNode = _AFTreeGetInfo(container);
-		[containerNode lock];
+		NSMutableSet *children = [NSMutableSet set];
 		
-		NSUInteger childCount = CFTreeGetChildCount(container);
-		
-		NSMutableSet *children = [NSMutableSet setWithCapacity:childCount];
-		for (NSUInteger childIdx = 0; childIdx < childCount; childIdx++) {
-			CFTreeRef currentChild = CFTreeGetChildAtIndex(container, childIdx);
-			_AFInMemoryFileSystemNode *currentChildNode = _AFTreeGetInfo(currentChild);
+		@synchronized ((id)container) {
+			NSUInteger childCount = CFTreeGetChildCount(container);
 			
-			NSString *absolutePath = [listPath stringByAppendingPathComponent:currentChildNode.name];
-			AFVirtualFileSystemNode *fullNode = [[[AFVirtualFileSystemNode alloc] initWithAbsolutePath:absolutePath nodeType:currentChildNode.nodeType] autorelease];
-			[children addObject:fullNode];
+			for (NSUInteger childIdx = 0; childIdx < childCount; childIdx++) {
+				CFTreeRef currentChild = CFTreeGetChildAtIndex(container, childIdx);
+				_AFInMemoryFileSystemNode *currentChildNode = _AFTreeGetInfo(currentChild);
+				
+				NSString *absolutePath = [listPath stringByAppendingPathComponent:currentChildNode.name];
+				AFVirtualFileSystemNode *fullNode = [[[AFVirtualFileSystemNode alloc] initWithAbsolutePath:absolutePath nodeType:currentChildNode.nodeType] autorelease];
+				[children addObject:fullNode];
+			}
 		}
-		
-		[containerNode unlock];
 		
 		return children;
 	}
@@ -550,8 +422,7 @@ static id _AFTreeGetInfo(CFTreeRef node) {
 			return nil;
 		}
 		
-		NSParameterAssert([self _tryIncreasePendingTransactionCount]);
-#warning we should track 'open' child nodes in the parent directory node so that we can prevent them from being deleted
+#warning should we track 'open' child nodes in the parent directory node so that we can prevent them from being deleted
 		
 		return [_AFInMemoryFileSystemOutputStream outputStreamToFileSystem:self updateRequest:updateRequest];
 	}
@@ -563,6 +434,160 @@ static id _AFTreeGetInfo(CFTreeRef node) {
 		*errorRef = [NSError errorWithDomain:AFVirtualFileSystemErrorDomain code:AFVirtualFileSystemErrorCodeUnknown userInfo:errorInfo];
 	}
 	return nil;
+}
+
+@end
+
+#pragma mark -
+
+@interface _AFInMemoryFileSystemOutputStream ()
+@property (retain, nonatomic) NSMutableData *data;
+
+@property (assign, nonatomic) NSStreamStatus streamStatus;
+@property (retain, nonatomic) NSError *streamError;
+
+@property (assign, nonatomic) id <NSStreamDelegate> delegate;
+@end
+
+@implementation _AFInMemoryFileSystemOutputStream
+
+@synthesize fileSystem=_fileSystem;
+@synthesize updateRequest=_updateRequest;
+
+@synthesize data=_data;
+
+@synthesize streamStatus=_streamStatus;
+@synthesize streamError=_streamError;
+
+@synthesize delegate=_delegate;
+
++ (id)outputStreamToFileSystem:(AFInMemoryFileSystem *)fileSystem updateRequest:(AFVirtualFileSystemRequestUpdate *)updateRequest {
+	_AFInMemoryFileSystemOutputStream *stream = [[[self alloc] init] autorelease];
+	stream.fileSystem = fileSystem;
+	stream.updateRequest = updateRequest;
+	return stream;
+}
+
+- (id)init {
+	self = [super init];
+	if (self == nil) {
+		return nil;
+	}
+	
+	_data = [[NSMutableData alloc] init];
+	
+	return self;
+}
+
+- (void)dealloc {
+	[_fileSystem release];
+	[_updateRequest release];
+	
+	[_data release];
+	[_streamError release];
+	
+	[super dealloc];
+}
+
+- (void)open {
+	NSParameterAssert(self.streamStatus == NSStreamStatusNotOpen);
+	
+	BOOL increasePendingTransactionCount = [self.fileSystem _tryIncreasePendingTransactionCount];
+	if (!increasePendingTransactionCount) {
+		self.streamError = [NSError errorWithDomain:AFVirtualFileSystemErrorDomain code:AFVirtualFileSystemErrorCodeNotMounted userInfo:nil];
+		
+		[self _setStreamStatusAndNotify:NSStreamStatusError];
+		return;
+	}
+	
+	[self _setStreamStatusAndNotify:NSStreamStatusOpen];
+}
+
+- (void)close {
+	if (self.streamStatus == NSStreamStatusOpen) {
+		NSError *swapError = nil;
+		BOOL swap = [self _swap:&swapError];
+		
+		[self.fileSystem _decrementPendingTransactionCount];
+		
+		if (!swap) {
+			self.streamError = swapError;
+			[self _setStreamStatusAndNotify:NSStreamStatusError];
+			return;
+		}
+	}
+	
+	[self _setStreamStatusAndNotify:NSStreamStatusClosed];
+}
+
+- (BOOL)_swap:(NSError **)errorRef {
+	NSString *objectPath = self.updateRequest.path;
+	
+	CFTreeRef object = (CFTreeRef)[(id)[self.fileSystem _objectWithPath:objectPath error:errorRef] autorelease];
+	if (object == NULL) {
+		return NO;
+	}
+	
+	_AFInMemoryFileSystemObject *oldObjectNode = _AFTreeGetInfo(object);
+	
+	_AFInMemoryFileSystemObject *newObjectNode = [[[_AFInMemoryFileSystemObject alloc] initWithName:oldObjectNode.name data:self.data] autorelease];
+	_AFTreeSetInfo(object, newObjectNode);
+	
+	return YES;
+}
+
+- (void)setDelegate:(id <NSStreamDelegate>)delegate {
+	_delegate = (delegate ? : (id)self);
+}
+
+- (void)_setStreamStatusAndNotify:(NSStreamStatus)status {
+	self.streamStatus = status;
+	
+	if (![self.delegate respondsToSelector:@selector(stream:handleEvent:)]) {
+		return;
+	}
+	
+	struct StatusToEvent {
+		NSStreamStatus status;
+		NSStreamEvent event;
+	} statusToEventMap[] = {
+		{ .status = NSStreamStatusOpen, .event = NSStreamEventOpenCompleted },
+		{ .status = NSStreamStatusAtEnd, .event = NSStreamEventEndEncountered },
+		{ .status = NSStreamStatusError, .event = NSStreamEventErrorOccurred },
+	};
+	for (NSUInteger idx = 0; idx < sizeof(statusToEventMap)/sizeof(*statusToEventMap); idx++) {
+		if (statusToEventMap[idx].status != status) {
+			continue;
+		}
+		
+		[self.delegate stream:self handleEvent:statusToEventMap[idx].event];
+		break;
+	}
+}
+
+- (id)propertyForKey:(NSString *)key {
+	return nil;
+}
+
+- (BOOL)setProperty:(id)property forKey:(NSString *)key {
+	return NO;
+}
+
+- (void)scheduleInRunLoop:(NSRunLoop *)aRunLoop forMode:(NSString *)mode {
+	//nop
+}
+
+- (void)removeFromRunLoop:(NSRunLoop *)aRunLoop forMode:(NSString *)mode {
+	//nop
+}
+
+- (BOOL)hasSpaceAvailable {
+	return YES;
+}
+
+- (NSInteger)write:(uint8_t const *)buffer maxLength:(NSUInteger)maxLength {
+	[self.data appendBytes:buffer length:maxLength];
+	return maxLength;
 }
 
 @end

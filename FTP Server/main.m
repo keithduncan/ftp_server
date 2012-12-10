@@ -26,6 +26,8 @@ id <AFVirtualFileSystem> MakeFileSystem(void) {
 	NSArray *directoryNames = @[ @"Applications", @"Developer", @"Library", @"System", @"Users" ];
 	[directoryNames enumerateObjectsUsingBlock:(void (^)(id, NSUInteger, BOOL *))createDirectoryWithName];
 	
+	NSCParameterAssert([fileSystem mount:NULL]);
+	
 	return fileSystem;
 }
 

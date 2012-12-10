@@ -156,7 +156,7 @@ static NSString *_AFNetworkFTPServerMainContext = @"_AFNetworkFTPServerMainConte
 	NSError *listError = nil;
 	NSSet *listResponse = [self _executeFileSystemRequest:listRequest authenticate:YES forConnection:connection error:&listError];
 	if (listResponse == nil) {
-		[self _writeReply:connection forListContentsOfContainer:encodedPathname error:listError];
+		[self _writeReply:connection forListContentsOfContainer:workingDirectory error:listError];
 		return nil;
 	}
 	
@@ -189,24 +189,28 @@ static NSString *_AFNetworkFTPServerMainContext = @"_AFNetworkFTPServerMainConte
 	[connection writeReply:AFNetworkFTPReplyCodeRequestedFileActionError message:message readLine:&_AFNetworkFTPServerMainContext];
 }
 
+- (void)_reportDataError:(AFNetworkFTPConnection *)connection error:(NSError *)error {
+	if ([[error domain] isEqualToString:AFNetworkFTPErrorDomain]) {
+		if ([error code] == AFNetworkFTPErrorCodeNoDataServer) {
+			[connection writeReply:AFNetworkFTPReplyCodeRequestedActionAborted message:@"data connection must be established first using PASV or PORT" readLine:&_AFNetworkFTPServerMainContext];
+			return;
+		}
+		if ([error code] == AFNetworkFTPErrorCodeDataAlreadyEnqueued) {
+			[connection writeReply:AFNetworkFTPReplyCodeRequestedActionAborted message:@"data connection already established, wait for the first operation to complete" readLine:&_AFNetworkFTPServerMainContext];
+			return;
+		}
+	}
+	
+	[connection writeReply:AFNetworkFTPReplyCodeRequestedActionAborted message:@"unknown data connection error" readLine:&_AFNetworkFTPServerMainContext];
+}
+
 - (void)_writeDataReply:(AFNetworkFTPConnection *)connection bodyStream:(NSInputStream *)bodyStream {
 	[connection writeReply:AFNetworkFTPReplyCodeAboutToOpenDataConnection message:nil readLine:NULL];
 	
 	NSError *writeError = nil;
 	BOOL write = [connection writeFirstDataServerConnectionFromReadStream:bodyStream error:&writeError];
 	if (!write) {
-		if ([[writeError domain] isEqualToString:AFNetworkFTPErrorDomain]) {
-			if ([writeError code] == AFNetworkFTPErrorCodeNoDataServer) {
-				[connection writeReply:AFNetworkFTPReplyCodeRequestedActionAborted message:@"data connection must be established first using PASV or PORT" readLine:&_AFNetworkFTPServerMainContext];
-				return;
-			}
-			if ([writeError code] == AFNetworkFTPErrorCodeDataAlreadyEnqueued) {
-				[connection writeReply:AFNetworkFTPReplyCodeRequestedActionAborted message:@"data connection already established, wait for the first operation to complete" readLine:&_AFNetworkFTPServerMainContext];
-				return;
-			}
-		}
-		
-		[connection writeReply:AFNetworkFTPReplyCodeRequestedActionAborted message:@"unknown data connection error" readLine:&_AFNetworkFTPServerMainContext];
+		[self _reportDataError:connection error:writeError];
 		return;
 	}
 	
@@ -214,7 +218,14 @@ static NSString *_AFNetworkFTPServerMainContext = @"_AFNetworkFTPServerMainConte
 }
 
 - (void)_readDataRequest:(AFNetworkFTPConnection *)connection bodyStream:(NSOutputStream *)bodyStream {
-	[self doesNotRecognizeSelector:_cmd];
+	[connection writeReply:AFNetworkFTPReplyCodeAboutToOpenDataConnection message:nil readLine:NULL];
+	
+	NSError *readError = nil;
+	BOOL read = [connection readFirstDataServerConnectionToWriteStream:bodyStream error:&readError];
+	if (!read) {
+		[self _reportDataError:connection error:readError];
+		return;
+	}
 	
 #warning needs to write a response on the control channel after the data transfer is complete
 }
@@ -384,7 +395,7 @@ static NSString *_AFNetworkFTPServerMainContext = @"_AFNetworkFTPServerMainConte
 		NSError *listError = nil;
 		NSSet *listResponse = [self _executeFileSystemRequest:listRequest authenticate:YES forConnection:connection error:&listError];
 		if (listResponse == nil) {
-			[self _writeReply:connection forListContentsOfContainer:encodedPathname error:listError];
+			[self _writeReply:connection forListContentsOfContainer:resolvedPath error:listError];
 			return;
 		}
 		
@@ -817,11 +828,44 @@ static NSString *_AFNetworkFTPServerMainContext = @"_AFNetworkFTPServerMainConte
 		[self _writeDataReply:connection bodyStream:[NSInputStream inputStreamWithData:listData]];
 	});
 	
-#if 0
-	tryParseCommand(@"RETR", ^ (NSString *parameter) {
+	tryParseCommand(@"RETR", ^ (NSString *encodedPathname) {
+		if ([encodedPathname length] == 0) {
+			[connection writeReply:AFNetworkFTPReplyCodeParameterSyntaxError message:@"filename parameter not supplied" readLine:&_AFNetworkFTPServerMainContext];
+			return;
+		}
 		
+		NSString *resolvedPath = [self _resolvePath:encodedPathname relativeToConnectionAndReplyIfCant:connection];
+		if (resolvedPath == nil) {
+			return;
+		}
+		
+		AFVirtualFileSystemRequestRead *readRequest = [[[AFVirtualFileSystemRequestRead alloc] initWithPath:resolvedPath] autorelease];
+		
+		NSError *readError = nil;
+		NSInputStream *read = [self _executeFileSystemRequest:readRequest authenticate:YES forConnection:connection error:&readError];
+		if (read == nil) {
+			do {
+				if ([[readError domain] isEqualToString:AFVirtualFileSystemErrorDomain]) {
+					if ([readError code] == AFVirtualFileSystemErrorCodeNoNodeExists) {
+						[connection writeReply:AFNetworkFTPReplyCodeRequestedFileActionError message:[NSString stringWithFormat:@"file doesn't exist"] readLine:&_AFNetworkFTPServerMainContext];
+						return;
+					}
+					
+					// Node already exists but it is isn't an Object, cannot also create an Object with the same name as the existing Node
+					if ([readError code] == AFVirtualFileSystemErrorCodeNotObject) {
+						[connection writeReply:AFNetworkFTPReplyCodeRequestedFileActionError message:[NSString stringWithFormat:@"entry at path isn't a file"] readLine:&_AFNetworkFTPServerMainContext];
+						return;
+					}
+				}
+				
+				// Unknown error
+				[connection writeReply:AFNetworkFTPReplyCodeRequestedFileActionError message:[NSString stringWithFormat:@"couldn't read file, underlying error %@ %ld", [readError domain], (long)[readError code]] readLine:&_AFNetworkFTPServerMainContext];
+				return;
+			} while (0);
+		}
+		
+		[self _writeDataReply:connection bodyStream:read];
 	});
-#endif
 	
 	tryParseCommand(@"STOR", ^ (NSString *encodedPathname) {
 		if ([encodedPathname length] == 0) {
@@ -875,15 +919,61 @@ static NSString *_AFNetworkFTPServerMainContext = @"_AFNetworkFTPServerMainConte
 		NSError *writeStreamError = nil;
 		NSOutputStream *writeStream = [self _executeFileSystemRequest:writeStreamRequest authenticate:YES forConnection:connection error:&writeStreamError];
 		if (writeStream == nil) {
-			NSString *message = [NSString stringWithFormat:@"unknown failure, underlying error %@ %ld", [writeStreamError domain], (long)[writeStreamError code]];
-			[connection writeReply:AFNetworkFTPReplyCodeRequestedFileActionError message:message readLine:&_AFNetworkFTPServerMainContext];
+			[connection writeReply:AFNetworkFTPReplyCodeRequestedFileActionError message:[NSString stringWithFormat:@"unknown failure, underlying error %@ %ld", [writeStreamError domain], (long)[writeStreamError code]] readLine:&_AFNetworkFTPServerMainContext];
 			return;
 		}
 		
-		[connection writeReply:AFNetworkFTPReplyCodeAboutToOpenDataConnection mark:nil];
-		
 		[self _readDataRequest:connection bodyStream:writeStream];
 	});
+	
+	void (^parseRmCommand)(NSString *) = ^ (NSString *encodedPathname) {
+		if ([encodedPathname length] == 0) {
+			[connection writeReply:AFNetworkFTPReplyCodeParameterSyntaxError message:@"filename parameter not supplied" readLine:&_AFNetworkFTPServerMainContext];
+			return;
+		}
+		
+		NSString *resolvedPath = [self _resolvePath:encodedPathname relativeToConnectionAndReplyIfCant:connection];
+		if (resolvedPath == nil) {
+			return;
+		}
+		
+		AFVirtualFileSystemRequestDelete *deleteRequest = [[[AFVirtualFileSystemRequestDelete alloc] initWithPath:resolvedPath] autorelease];
+		
+		NSError *deleteError = nil;
+		id delete = [self _executeFileSystemRequest:deleteRequest authenticate:YES forConnection:connection error:&deleteError];
+		if (delete == nil) {
+			do {
+				if ([[deleteError domain] isEqualToString:AFVirtualFileSystemErrorDomain]) {
+					// Node doesn't exist, we were trying to delete it, so the delete operation succeeds
+					if ([deleteError code] == AFVirtualFileSystemErrorCodeNoNodeExists) {
+						break;
+					}
+					
+					// Container doesn't exit, we were trying to delete a subpath, so the delete operation succeeds
+					if ([deleteError code] == AFVirtualFileSystemErrorCodeNotContainer) {
+						break;
+					}
+				}
+				
+				[connection writeReply:AFNetworkFTPReplyCodeRequestedFileActionError message:[NSString stringWithFormat:@"unknown failure, underlying error %@ %ld", [deleteError domain], (long)[deleteError code]] readLine:&_AFNetworkFTPServerMainContext];
+				return;
+			} while (0);
+		}
+		
+		[connection writeReply:AFNetworkFTPReplyCodeRequestedFileActionOK message:nil readLine:&_AFNetworkFTPServerMainContext];
+	};
+	tryParseCommand(@"DELE", parseRmCommand);
+	tryParseCommand(@"RMD", parseRmCommand);
+	
+#if 0
+	tryParseCommand(@"RNFR", ^ (NSString *paramter) {
+		
+	});
+	
+	tryParseCommand(@"RNTO", ^ (NSString *paramter) {
+		
+	});
+#endif
 	
 	tryParseCommand(@"QUIT", ^ (NSString *parameter) {
 		[connection writeReply:AFNetworkFTPReplyCodeServiceClosingControlConnection message:nil readLine:&_AFNetworkFTPServerMainContext];
@@ -915,7 +1005,8 @@ static NSString *_AFNetworkFTPServerMainContext = @"_AFNetworkFTPServerMainConte
 }
 
 - (void)connectionDidReadDataToWriteStream:(AFNetworkFTPConnection *)connection {
-	
+	[connection writeReply:AFNetworkFTPReplyCodeServiceClosingDataConnection message:nil readLine:&_AFNetworkFTPServerMainContext];
+	[connection closeDataServer];
 }
 
 @end

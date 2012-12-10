@@ -156,7 +156,6 @@
 		53759DFD15CEE8AD00F93127 /* FTP Server */ = {
 			isa = PBXGroup;
 			children = (
-				53759DFE15CEE8AD00F93127 /* main.m */,
 				53A0482315D077B80054FFB0 /* AFNetworkTelnetConnection.h */,
 				53A0482415D077B80054FFB0 /* AFNetworkTelnetConnection.m */,
 				533F3017165C35DE00E327D4 /* AFNetworkFTPConnection.h */,
@@ -178,6 +177,7 @@
 		53759E0015CEE8AD00F93127 /* Supporting Files */ = {
 			isa = PBXGroup;
 			children = (
+				53759DFE15CEE8AD00F93127 /* main.m */,
 				53759E0115CEE8AD00F93127 /* FTP Server-Prefix.pch */,
 			);
 			name = "Supporting Files";

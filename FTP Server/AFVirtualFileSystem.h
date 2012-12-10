@@ -14,7 +14,9 @@ typedef NS_ENUM(NSInteger, AFVirtualFileSystemErrorCode) {
 	AFVirtualFileSystemErrorCodeUnknown = 0,
 	
 	// File System Errors [-1, -99]
-	AFVirtualFileSystemErrorCodeBusy = -1,
+	AFVirtualFileSystemErrorCodeNotMounted = -1,
+	AFVirtualFileSystemErrorCodeAlreadyMounted = -2,
+	AFVirtualFileSystemErrorCodeBusy = -3,
 	
 	// Node Errors [-100, -199]
 	AFVirtualFileSystemErrorCodeNoNodeExists = -100,
