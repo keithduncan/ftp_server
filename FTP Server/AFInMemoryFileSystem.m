@@ -316,6 +316,17 @@ static void _AFTreeSetInfo(CFTreeRef node, id info) {
 		AFVirtualFileSystemRequestCreate *createRequest = (id)request;
 		NSString *createPath = createRequest.path;
 		
+		if ([createPath isEqualToString:@"/"]) {
+			if (createRequest.nodeType != AFVirtualFileSystemNodeTypeContainer) {
+				if (errorRef != NULL) {
+					*errorRef = [NSError errorWithDomain:AFVirtualFileSystemErrorDomain code:AFVirtualFileSystemErrorCodeNotObject userInfo:nil];
+				}
+				return nil;
+			}
+			
+			return [[[AFVirtualFileSystemNode alloc] initWithAbsolutePath:@"/" nodeType:AFVirtualFileSystemNodeTypeContainer] autorelease];
+		}
+		
 		NSString *containerPath = [createPath stringByDeletingLastPathComponent];
 		CFTreeRef container = (CFTreeRef)[(id)[self _containerWithPath:containerPath error:errorRef] autorelease];
 		if (container == NULL) {
@@ -427,6 +438,13 @@ static void _AFTreeSetInfo(CFTreeRef node, id info) {
 	if ([request isKindOfClass:[AFVirtualFileSystemRequestDelete class]]) {
 		AFVirtualFileSystemRequestDelete *deleteRequest = (id)request;
 		NSString *deletePath = deleteRequest.path;
+		
+		if ([deletePath isEqualToString:@"/"]) {
+			if (errorRef != NULL) {
+				*errorRef = [NSError errorWithDomain:AFVirtualFileSystemErrorDomain code:AFVirtualFileSystemErrorCodeBusy userInfo:nil];
+			}
+			return nil;
+		}
 		
 		NSString *containerPath = [deletePath stringByDeletingLastPathComponent];
 		CFTreeRef container = (CFTreeRef)[(id)[self _containerWithPath:containerPath error:errorRef] autorelease];
