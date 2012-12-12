@@ -655,9 +655,10 @@ static NSString *_AFNetworkFTPServerMainContext = @"_AFNetworkFTPServerMainConte
 		NSString *wordSeparator = @" ";
 		NSArray *words = [parameters componentsSeparatedByString:wordSeparator];
 		
-		int argc = (int)[words count];
+		int argc = (int)[words count] + 1;
 		char const **argv = alloca(argc * sizeof(char *));
 		
+		argv[0] = "\0";
 		__block BOOL allWordsIncluded = YES;
 		[words enumerateObjectsUsingBlock:^ (NSString *currentWord, NSUInteger currentWordIdx, BOOL *stopEnumeratingWords) {
 			NSStringEncoding encoding = NSUTF8StringEncoding;
@@ -668,7 +669,7 @@ static NSString *_AFNetworkFTPServerMainContext = @"_AFNetworkFTPServerMainConte
 				return;
 			}
 			
-			argv[currentWordIdx] = [currentWord cStringUsingEncoding:encoding];
+			argv[currentWordIdx + 1] = [currentWord cStringUsingEncoding:encoding];
 		}];
 		if (!allWordsIncluded) {
 			replyUnknownParameters();
@@ -680,11 +681,9 @@ static NSString *_AFNetworkFTPServerMainContext = @"_AFNetworkFTPServerMainConte
 			
 			support -a and -l flags
 		 */
-		static struct option const options[] = {
-			{},
-		};
+#warning this isn't thread safe, we need an _r variant as in the GNU C standard library, this already won't work if getopt has already been invoked in this process as it doesn't reset optind
 		int option = 0;
-		while ((option = getopt_long(argc, (char * const *)argv, "al", options, NULL)) != -1) {
+		while ((option = getopt(argc, (char * const *)argv, "al")) != -1) {
 			switch (option) {
 				case 'a':
 				{
@@ -997,6 +996,10 @@ static NSString *_AFNetworkFTPServerMainContext = @"_AFNetworkFTPServerMainConte
 
 - (void)connection:(AFNetworkFTPConnection *)connection dataConnectionDidReceiveError:(NSError *)error {
 	
+}
+
+- (void)networkLayer:(id <AFNetworkTransportLayer>)layer didReceiveError:(NSError *)error {
+	[layer close];
 }
 
 - (void)connectionDidWriteDataFromReadStream:(AFNetworkFTPConnection *)connection {
