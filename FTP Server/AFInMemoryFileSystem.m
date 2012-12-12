@@ -319,9 +319,6 @@ static void _AFTreeSetInfo(CFTreeRef node, id info) {
 		NSString *containerPath = [createPath stringByDeletingLastPathComponent];
 		CFTreeRef container = (CFTreeRef)[(id)[self _containerWithPath:containerPath error:errorRef] autorelease];
 		if (container == NULL) {
-			if (errorRef != NULL) {
-				*errorRef = [NSError errorWithDomain:AFVirtualFileSystemErrorDomain code:AFVirtualFileSystemErrorCodeNoNodeExists userInfo:nil];
-			}
 			return nil;
 		}
 		
@@ -427,11 +424,46 @@ static void _AFTreeSetInfo(CFTreeRef node, id info) {
 		return [_AFInMemoryFileSystemOutputStream outputStreamToFileSystem:self updateRequest:updateRequest];
 	}
 	
+	if ([request isKindOfClass:[AFVirtualFileSystemRequestDelete class]]) {
+		AFVirtualFileSystemRequestDelete *deleteRequest = (id)request;
+		NSString *deletePath = deleteRequest.path;
+		
+		NSString *containerPath = [deletePath stringByDeletingLastPathComponent];
+		CFTreeRef container = (CFTreeRef)[(id)[self _containerWithPath:containerPath error:errorRef] autorelease];
+		if (container == NULL) {
+			return nil;
+		}
+		
+		int enter = objc_sync_enter((id)container);
+		NSParameterAssert(enter == OBJC_SYNC_SUCCESS);
+		
+		NSString *nodeName = [deletePath lastPathComponent];
+		CFTreeRef child = (CFTreeRef)[(id)[self _childOfLockedNode:container withPathComponent:nodeName] autorelease];
+		if (child == NULL) {
+			int exit = objc_sync_exit((id)container);
+			NSParameterAssert(exit == OBJC_SYNC_SUCCESS);
+			
+			if (errorRef != NULL) {
+				*errorRef = [NSError errorWithDomain:AFVirtualFileSystemErrorDomain code:AFVirtualFileSystemErrorCodeNoNodeExists userInfo:nil];
+			}
+			return nil;
+		}
+		
+#warning should we prevent non empty container nodes from being deleted
+		
+		CFTreeRemove(child);
+		
+		int exit = objc_sync_exit((id)container);
+		NSParameterAssert(exit == OBJC_SYNC_SUCCESS);
+		
+		return [[[NSObject alloc] init] autorelease];
+	}
+	
 	if (errorRef != NULL) {
 		NSDictionary *errorInfo = @{
 			NSLocalizedDescriptionKey : NSLocalizedStringFromTableInBundle(@"Cannot process file system request", nil, [NSBundle mainBundle], @"AFInMemoryFileSystem unknown request type error description"),
 		};
-		*errorRef = [NSError errorWithDomain:AFVirtualFileSystemErrorDomain code:AFVirtualFileSystemErrorCodeUnknown userInfo:errorInfo];
+		*errorRef = [NSError errorWithDomain:AFVirtualFileSystemErrorDomain code:AFVirtualFileSystemErrorCodeUnknownRequest userInfo:errorInfo];
 	}
 	return nil;
 }
