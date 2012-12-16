@@ -34,6 +34,13 @@
 }
 
 - (CFHTTPMessageRef)networkServer:(AFHTTPServer *)server renderResourceForRequest:(CFHTTPMessageRef)request {
+	NSString *requestMethod = [NSMakeCollectable(CFHTTPMessageCopyRequestMethod(request)) autorelease];
+	
+	NSSet *allowedMethods = [NSSet setWithObjects:AFHTTPMethodHEAD, AFHTTPMethodGET, nil];
+	if (![allowedMethods containsObject:requestMethod]) {
+		return NULL;
+	}
+	
 	NSURL *requestURL = [NSMakeCollectable(CFHTTPMessageCopyRequestURL(request)) autorelease];
 	
 #warning should be able to serve a subpath of the root URL namespace from the hierarchical file system, could be done with a prefix at initialisation time, or have a path prefix to omit / path suffix to serve passed with the request?
@@ -45,6 +52,11 @@
 	AFVirtualFileSystemResponse *readResponse = [self.fileSystem executeRequest:readRequest error:&readError];
 	if (readResponse == nil) {
 		return NULL;
+	}
+	
+	BOOL justCheckExistance = [requestMethod isEqualToString:AFHTTPMethodHEAD];
+	if (justCheckExistance) {
+		return AFHTTPMessageMakeResponseWithCode(AFHTTPStatusCodeOK);
 	}
 	
 	if (readResponse.node.nodeType == AFVirtualFileSystemNodeTypeContainer) {
