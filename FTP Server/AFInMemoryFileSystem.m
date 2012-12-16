@@ -311,7 +311,7 @@ static void _AFTreeSetInfo(CFTreeRef node, id info) {
 
 #warning ensure we can create and update child object nodes of the root node
 
-- (id)executeRequest:(AFVirtualFileSystemRequest *)request error:(NSError **)errorRef {
+- (AFVirtualFileSystemResponse *)executeRequest:(AFVirtualFileSystemRequest *)request error:(NSError **)errorRef {
 	if ([request isKindOfClass:[AFVirtualFileSystemRequestCreate class]]) {
 		AFVirtualFileSystemRequestCreate *createRequest = (id)request;
 		NSString *createPath = createRequest.path;
@@ -324,7 +324,9 @@ static void _AFTreeSetInfo(CFTreeRef node, id info) {
 				return nil;
 			}
 			
-			return [[[AFVirtualFileSystemNode alloc] initWithAbsolutePath:@"/" nodeType:AFVirtualFileSystemNodeTypeContainer] autorelease];
+			AFVirtualFileSystemNode *responseNode = [[[AFVirtualFileSystemNode alloc] initWithAbsolutePath:@"/" nodeType:AFVirtualFileSystemNodeTypeContainer] autorelease];
+			
+			return [[[AFVirtualFileSystemResponse alloc] initWithNode:responseNode body:nil] autorelease];
 		}
 		
 		NSString *containerPath = [createPath stringByDeletingLastPathComponent];
@@ -377,48 +379,67 @@ static void _AFTreeSetInfo(CFTreeRef node, id info) {
 		int exit = objc_sync_exit((id)container);
 		NSParameterAssert(exit == OBJC_SYNC_SUCCESS);
 		
-		return [[[AFVirtualFileSystemNode alloc] initWithAbsolutePath:createPath nodeType:createRequest.nodeType] autorelease];
+		AFVirtualFileSystemNode *responseNode = [[[AFVirtualFileSystemNode alloc] initWithAbsolutePath:createPath nodeType:createRequest.nodeType] autorelease];
+		
+		return [[[AFVirtualFileSystemResponse alloc] initWithNode:responseNode body:nil] autorelease];
 	}
 	
 	if ([request isKindOfClass:[AFVirtualFileSystemRequestRead class]]) {
 		AFVirtualFileSystemRequestRead *readRequest = (id)request;
 		NSString *readPath = readRequest.path;
 		
-		CFTreeRef object = (CFTreeRef)[(id)[self _objectWithPath:readPath error:errorRef] autorelease];
-		if (object == NULL) {
+		CFTreeRef node = (CFTreeRef)[(id)[self _nodeWithPath:readPath] autorelease];
+		if (node == NULL) {
+			if (errorRef != NULL) {
+				*errorRef = [NSError errorWithDomain:AFVirtualFileSystemErrorDomain code:AFVirtualFileSystemErrorCodeNoNodeExists userInfo:nil];
+			}
 			return nil;
 		}
 		
-		_AFInMemoryFileSystemObject *objectNode = _AFTreeGetInfo(object);
-		
-		return [NSInputStream inputStreamWithData:objectNode.data];
-	}
-	
-	if ([request isKindOfClass:[AFVirtualFileSystemRequestList class]]) {
-		AFVirtualFileSystemRequestList *listRequest = (id)request;
-		NSString *listPath = listRequest.path;
-		
-		CFTreeRef container = (CFTreeRef)[(id)[self _containerWithPath:listPath error:errorRef] autorelease];
-		if (container == NULL) {
-			return nil;
-		}
-		
-		NSMutableSet *children = [NSMutableSet set];
-		
-		@synchronized ((id)container) {
-			NSUInteger childCount = CFTreeGetChildCount(container);
+		/*
+			Note
 			
-			for (NSUInteger childIdx = 0; childIdx < childCount; childIdx++) {
-				CFTreeRef currentChild = CFTreeGetChildAtIndex(container, childIdx);
-				_AFInMemoryFileSystemNode *currentChildNode = _AFTreeGetInfo(currentChild);
+			lock to atomically read the info of the tree node and it's children if it's a container
+			
+			if we only lock the node to get the info point, by the time we lock to get the children it could have been mutated from a container into an object
+		 */
+		@synchronized ((id)node) {
+			_AFInMemoryFileSystemNode *nodeValue = _AFTreeGetInfo(node);
+			
+			if (nodeValue.nodeType == AFVirtualFileSystemNodeTypeContainer) {
+				AFVirtualFileSystemNode *responseNode = [[[AFVirtualFileSystemNode alloc] initWithAbsolutePath:readPath nodeType:AFVirtualFileSystemNodeTypeContainer] autorelease];
 				
-				NSString *absolutePath = [listPath stringByAppendingPathComponent:currentChildNode.name];
-				AFVirtualFileSystemNode *fullNode = [[[AFVirtualFileSystemNode alloc] initWithAbsolutePath:absolutePath nodeType:currentChildNode.nodeType] autorelease];
-				[children addObject:fullNode];
+				NSMutableSet *children = [NSMutableSet set];
+				
+				CFTreeRef container = node;
+				NSUInteger childCount = CFTreeGetChildCount(container);
+				
+				for (NSUInteger childIdx = 0; childIdx < childCount; childIdx++) {
+					CFTreeRef currentChild = CFTreeGetChildAtIndex(container, childIdx);
+					_AFInMemoryFileSystemNode *currentChildNode = _AFTreeGetInfo(currentChild);
+					
+					NSString *absolutePath = [readPath stringByAppendingPathComponent:currentChildNode.name];
+					AFVirtualFileSystemNode *fullNode = [[[AFVirtualFileSystemNode alloc] initWithAbsolutePath:absolutePath nodeType:currentChildNode.nodeType] autorelease];
+					[children addObject:fullNode];
+				}
+				
+				return [[[AFVirtualFileSystemResponse alloc] initWithNode:responseNode body:children] autorelease];
+			}
+			else if (nodeValue.nodeType == AFVirtualFileSystemNodeTypeObject) {
+				AFVirtualFileSystemNode *responseNode = [[[AFVirtualFileSystemNode alloc] initWithAbsolutePath:readPath nodeType:AFVirtualFileSystemNodeTypeObject] autorelease];
+				
+				_AFInMemoryFileSystemObject *nodeObject = (_AFInMemoryFileSystemObject *)nodeValue;
+				NSInputStream *responseBody = [NSInputStream inputStreamWithData:nodeObject.data];
+				
+				return [[[AFVirtualFileSystemResponse alloc] initWithNode:responseNode body:responseBody] autorelease];
+			}
+			else {
+				if (errorRef != NULL) {
+					*errorRef = [NSError errorWithDomain:AFVirtualFileSystemErrorDomain code:AFVirtualFileSystemErrorCodeUnknown userInfo:nil];
+				}
+				return nil;
 			}
 		}
-		
-		return children;
 	}
 	
 	if ([request isKindOfClass:[AFVirtualFileSystemRequestUpdate class]]) {
@@ -432,7 +453,10 @@ static void _AFTreeSetInfo(CFTreeRef node, id info) {
 		
 #warning should we track 'open' child nodes in the parent directory node so that we can prevent them from being deleted
 		
-		return [_AFInMemoryFileSystemOutputStream outputStreamToFileSystem:self updateRequest:updateRequest];
+		AFVirtualFileSystemNode *responseNode = [[[AFVirtualFileSystemNode alloc] initWithAbsolutePath:updatePath nodeType:AFVirtualFileSystemNodeTypeObject] autorelease];
+		NSOutputStream *responseBody = [_AFInMemoryFileSystemOutputStream outputStreamToFileSystem:self updateRequest:updateRequest];
+		
+		return [[[AFVirtualFileSystemResponse alloc] initWithNode:responseNode body:responseBody] autorelease];
 	}
 	
 	if ([request isKindOfClass:[AFVirtualFileSystemRequestDelete class]]) {
@@ -467,14 +491,19 @@ static void _AFTreeSetInfo(CFTreeRef node, id info) {
 			return nil;
 		}
 		
+		AFVirtualFileSystemNodeType childType = [_AFTreeGetInfo(child) nodeType];
+		if (childType == AFVirtualFileSystemNodeTypeContainer) {
 #warning should we prevent non empty container nodes from being deleted
+		}
 		
 		CFTreeRemove(child);
 		
 		int exit = objc_sync_exit((id)container);
 		NSParameterAssert(exit == OBJC_SYNC_SUCCESS);
 		
-		return [[[NSObject alloc] init] autorelease];
+		AFVirtualFileSystemNode *responseNode = [[[AFVirtualFileSystemNode alloc] initWithAbsolutePath:deletePath nodeType:childType] autorelease];
+		
+		return [[[AFVirtualFileSystemResponse alloc] initWithNode:responseNode body:nil] autorelease];
 	}
 	
 	if (errorRef != NULL) {

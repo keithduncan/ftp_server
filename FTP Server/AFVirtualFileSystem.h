@@ -8,6 +8,8 @@
 
 #import <Foundation/Foundation.h>
 
+@class AFVirtualFileSystemNode;
+
 extern NSString *const AFVirtualFileSystemErrorDomain;
 
 typedef NS_ENUM(NSInteger, AFVirtualFileSystemErrorCode) {
@@ -29,30 +31,10 @@ typedef NS_ENUM(NSInteger, AFVirtualFileSystemErrorCode) {
 	AFVirtualFileSystemErrorCodeContainerNotEmpty = -104,
 };
 
-/*!
-	\brief
-	Nodes can be Containers or Objects. Containers have Nodes as children, Objects have data associated with them.
-	
-	\details
-	Node names can be any Unicode character sequence.
-	Names from the user should be normalised using Normalization Form C <http://www.unicode.org/reports/tr15/tr15-23.html#Specification> before passing them to the file system for consistent results.
-	Names from an API should be uses as-is, for example names from a file system list request.
- */
-@interface AFVirtualFileSystemNode : NSObject
-
-/*!
-	\brief
-	The name of this object can be determined by the `[absolutePath lastPathComponent]`
- */
-@property (readonly, copy, nonatomic) NSString *absolutePath;
-
 typedef NS_ENUM(NSUInteger, AFVirtualFileSystemNodeType) {
 	AFVirtualFileSystemNodeTypeContainer,
 	AFVirtualFileSystemNodeTypeObject,
 };
-@property (readonly, assign, nonatomic) AFVirtualFileSystemNodeType nodeType;
-
-@end
 
 /*
 	Virtual Node Operations
@@ -60,7 +42,7 @@ typedef NS_ENUM(NSUInteger, AFVirtualFileSystemNodeType) {
 
 /*!
 	\brief
-	File system operations are modelled as CRUD requests with extensions
+	File system operations are modelled as CRUD
  */
 @interface AFVirtualFileSystemRequest : NSObject
 
@@ -86,7 +68,7 @@ typedef NS_ENUM(NSUInteger, AFVirtualFileSystemNodeType) {
 
 /*!
 	\brief
-	Returns success error if the node didn't already exist, if the node exists when this request is performed { AFVirtualFileSystemErrorDomain : AFVirtualFileSystemErrorCodeNodeExists } is returned, if this is an acceptable condition you must detect this error
+	Returns success error if the node didn't already exist, if the node exists when this request is performed { AFVirtualFileSystemErrorDomain : AFVirtualFileSystemErrorCodeNodeExists } is returned, if this is an acceptable condition you should detect this error
  */
 @interface AFVirtualFileSystemRequestCreate : AFVirtualFileSystemRequest
 
@@ -98,7 +80,8 @@ typedef NS_ENUM(NSUInteger, AFVirtualFileSystemNodeType) {
 
 /*!
 	\brief
-	The data associated with the Object at `path` is returned via an NSInputStream
+	If `path` points to an Object, the body of the response is an `NSInputStream`
+	If `path` points to a Container, the response body is an `NSSet` object of the children
  */
 @interface AFVirtualFileSystemRequestRead : AFVirtualFileSystemRequest
 
@@ -108,17 +91,7 @@ typedef NS_ENUM(NSUInteger, AFVirtualFileSystemNodeType) {
 
 /*!
 	\brief
-	The Object values associated with the Container at `path` are returned in an NSSet object
- */
-@interface AFVirtualFileSystemRequestList : AFVirtualFileSystemRequest
-
-- (id)initWithPath:(NSString *)path;
-
-@end
-
-/*!
-	\brief
-	An output stream is returned and upon close the data from it is associated with the Object at `path`
+	An `NSOutputStream` is returned and upon close the data from it is associated with the Object at `path`
  */
 @interface AFVirtualFileSystemRequestUpdate : AFVirtualFileSystemRequest
 
@@ -140,6 +113,20 @@ typedef NS_ENUM(NSUInteger, AFVirtualFileSystemNodeType) {
 - (id)initWithPath:(NSString *)path;
 
 @end
+
+#pragma mark -
+
+@interface AFVirtualFileSystemResponse : NSObject
+
+- (id)initWithNode:(AFVirtualFileSystemNode *)node body:(id)body;
+
+@property (readonly, retain, nonatomic) AFVirtualFileSystemNode *node;
+
+@property (readonly, retain, nonatomic) id body;
+
+@end
+
+#pragma mark -
 
 /*!
 	\brief
@@ -178,6 +165,29 @@ typedef NS_ENUM(NSUInteger, AFVirtualFileSystemNodeType) {
 	\details
 	It is programmer error to execute a request before a file system has been sent -mount: or after it has been sent -unmount:
  */
-- (id)executeRequest:(AFVirtualFileSystemRequest *)request error:(NSError **)errorRef;
+- (AFVirtualFileSystemResponse *)executeRequest:(AFVirtualFileSystemRequest *)request error:(NSError **)errorRef;
+
+@end
+
+#pragma mark -
+
+/*!
+	\brief
+	Nodes can be Containers or Objects. Containers have Nodes as children, Objects have data associated with them.
+	
+	\details
+	Node names can be any Unicode character sequence.
+	Names from the user should be normalised using Normalization Form C <http://www.unicode.org/reports/tr15/tr15-23.html#Specification> before passing them to the file system for consistent results.
+	Names from an API should be uses as-is, for example names from a file system list request.
+ */
+@interface AFVirtualFileSystemNode : NSObject
+
+/*!
+	\brief
+	The name of this object can be determined by the `[absolutePath lastPathComponent]`
+ */
+@property (readonly, copy, nonatomic) NSString *absolutePath;
+
+@property (readonly, assign, nonatomic) AFVirtualFileSystemNodeType nodeType;
 
 @end

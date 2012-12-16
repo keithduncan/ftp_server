@@ -111,7 +111,7 @@ static NSString *_AFNetworkFTPServerMainContext = @"_AFNetworkFTPServerMainConte
 	[connection setUserInfoValue:workingDirectoryPath forKey:AFNetworkFTPConnectionWorkingDirectoryPath];
 }
 
-- (id)_executeFileSystemRequest:(AFVirtualFileSystemRequest *)request authenticate:(BOOL)authenticate forConnection:(AFNetworkFTPConnection *)connection error:(NSError **)errorRef {
+- (AFVirtualFileSystemResponse *)_executeFileSystemRequest:(AFVirtualFileSystemRequest *)request authenticate:(BOOL)authenticate forConnection:(AFNetworkFTPConnection *)connection error:(NSError **)errorRef {
 	id <AFVirtualFileSystem> fileSystem = self.fileSystem;
 	if (fileSystem == nil) {
 		if (errorRef != NULL) {
@@ -139,7 +139,7 @@ static NSString *_AFNetworkFTPServerMainContext = @"_AFNetworkFTPServerMainConte
 	return [fileSystem executeRequest:request error:errorRef];
 }
 
-- (id)_executeListRequest:(NSString *)encodedPathname forConnection:(AFNetworkFTPConnection *)connection {
+- (NSSet *)_executeListRequest:(NSString *)encodedPathname forConnection:(AFNetworkFTPConnection *)connection {
 	if ([encodedPathname length] != 0) {
 		/*
 			Note
@@ -151,16 +151,22 @@ static NSString *_AFNetworkFTPServerMainContext = @"_AFNetworkFTPServerMainConte
 	}
 	
 	NSString *workingDirectory = [connection userInfoValueForKey:AFNetworkFTPConnectionWorkingDirectoryPath];
-	AFVirtualFileSystemRequestList *listRequest = [[[AFVirtualFileSystemRequestList alloc] initWithPath:workingDirectory] autorelease];
+	AFVirtualFileSystemRequestRead *listRequest = [[[AFVirtualFileSystemRequestRead alloc] initWithPath:workingDirectory] autorelease];
 	
 	NSError *listError = nil;
-	NSSet *listResponse = [self _executeFileSystemRequest:listRequest authenticate:YES forConnection:connection error:&listError];
+	AFVirtualFileSystemResponse *listResponse = [self _executeFileSystemRequest:listRequest authenticate:YES forConnection:connection error:&listError];
 	if (listResponse == nil) {
 		[self _writeReply:connection forListContentsOfContainer:workingDirectory error:listError];
 		return nil;
 	}
 	
-	return listResponse;
+	if (listResponse.node.nodeType != AFVirtualFileSystemNodeTypeContainer) {
+		NSError *error = [NSError errorWithDomain:AFVirtualFileSystemErrorDomain code:AFVirtualFileSystemErrorCodeNotContainer userInfo:nil];
+		[self _writeReply:connection forListContentsOfContainer:workingDirectory error:error];
+		return nil;
+	}
+	
+	return listResponse.body;
 }
 
 - (void)_writeReply:(AFNetworkFTPConnection *)connection forListContentsOfContainer:(NSString *)pathname error:(NSError *)error {
@@ -390,12 +396,18 @@ static NSString *_AFNetworkFTPServerMainContext = @"_AFNetworkFTPServerMainConte
 			return;
 		}
 		
-		AFVirtualFileSystemRequestList *listRequest = [[[AFVirtualFileSystemRequestList alloc] initWithPath:resolvedPath] autorelease];
+		AFVirtualFileSystemRequestRead *readRequest = [[[AFVirtualFileSystemRequestRead alloc] initWithPath:resolvedPath] autorelease];
 		
 		NSError *listError = nil;
-		NSSet *listResponse = [self _executeFileSystemRequest:listRequest authenticate:YES forConnection:connection error:&listError];
+		AFVirtualFileSystemResponse *listResponse = [self _executeFileSystemRequest:readRequest authenticate:YES forConnection:connection error:&listError];
 		if (listResponse == nil) {
 			[self _writeReply:connection forListContentsOfContainer:resolvedPath error:listError];
+			return;
+		}
+		
+		if (listResponse.node.nodeType != AFVirtualFileSystemNodeTypeContainer) {
+			NSError *error = [NSError errorWithDomain:AFVirtualFileSystemErrorDomain code:AFVirtualFileSystemErrorCodeNotContainer userInfo:nil];
+			[self _writeReply:connection forListContentsOfContainer:resolvedPath error:error];
 			return;
 		}
 		
@@ -434,8 +446,8 @@ static NSString *_AFNetworkFTPServerMainContext = @"_AFNetworkFTPServerMainConte
 		AFVirtualFileSystemRequestCreate *createRequest = [[[AFVirtualFileSystemRequestCreate alloc] initWithPath:resolvedPath nodeType:AFVirtualFileSystemNodeTypeContainer] autorelease];
 		
 		NSError *createError = nil;
-		AFVirtualFileSystemNode *create = [self _executeFileSystemRequest:createRequest authenticate:YES forConnection:connection error:&createError];
-		if (create == nil) {
+		AFVirtualFileSystemResponse *createResponse = [self _executeFileSystemRequest:createRequest authenticate:YES forConnection:connection error:&createError];
+		if (createResponse == nil) {
 			do {
 				if ([[createError domain] isEqualToString:AFVirtualFileSystemErrorDomain]) {
 					// Node already exists but it is of the correct type, so the create operation succeeds
@@ -461,7 +473,7 @@ static NSString *_AFNetworkFTPServerMainContext = @"_AFNetworkFTPServerMainConte
 			} while (0);
 		}
 		
-		NSMutableString *encodedPath = [[[self _encodePath:[create absolutePath]] mutableCopy] autorelease];
+		NSMutableString *encodedPath = [NSMutableString stringWithString:[self _encodePath:createResponse.node.absolutePath]];
 		[encodedPath replaceOccurrencesOfString:@"\"" withString:@"\"\"" options:(NSStringCompareOptions)0 range:NSMakeRange(0, [encodedPath length])];
 		
 		[connection writeReply:AFNetworkFTPReplyCodePathnameCreated message:[NSString stringWithFormat:@"\"%@\"", encodedPath] readLine:&_AFNetworkFTPServerMainContext];
@@ -599,7 +611,7 @@ static NSString *_AFNetworkFTPServerMainContext = @"_AFNetworkFTPServerMainConte
 		this uses the EPLF defined here <http://cr.yp.to/ftp/list/eplf.html>
 	 */
 	tryParseCommand(@"EPLF", ^ (NSString *encodedPathname) {
-		id listResponse = [self _executeListRequest:encodedPathname forConnection:connection];
+		NSSet *listResponse = [self _executeListRequest:encodedPathname forConnection:connection];
 		if (listResponse == nil) {
 			return;
 		}
@@ -703,7 +715,7 @@ static NSString *_AFNetworkFTPServerMainContext = @"_AFNetworkFTPServerMainConte
 			}
 		}
 		
-		id listResponse = [self _executeListRequest:nil forConnection:connection];
+		NSSet *listResponse = [self _executeListRequest:nil forConnection:connection];
 		if (listResponse == nil) {
 			return;
 		}
@@ -841,8 +853,8 @@ static NSString *_AFNetworkFTPServerMainContext = @"_AFNetworkFTPServerMainConte
 		AFVirtualFileSystemRequestRead *readRequest = [[[AFVirtualFileSystemRequestRead alloc] initWithPath:resolvedPath] autorelease];
 		
 		NSError *readError = nil;
-		NSInputStream *read = [self _executeFileSystemRequest:readRequest authenticate:YES forConnection:connection error:&readError];
-		if (read == nil) {
+		AFVirtualFileSystemResponse *readResponse = [self _executeFileSystemRequest:readRequest authenticate:YES forConnection:connection error:&readError];
+		if (readResponse == nil) {
 			do {
 				if ([[readError domain] isEqualToString:AFVirtualFileSystemErrorDomain]) {
 					if ([readError code] == AFVirtualFileSystemErrorCodeNoNodeExists) {
@@ -863,7 +875,8 @@ static NSString *_AFNetworkFTPServerMainContext = @"_AFNetworkFTPServerMainConte
 			} while (0);
 		}
 		
-		[self _writeDataReply:connection bodyStream:read];
+		NSInputStream *readBody = readResponse.body;
+		[self _writeDataReply:connection bodyStream:readBody];
 	});
 	
 	tryParseCommand(@"STOR", ^ (NSString *encodedPathname) {
@@ -880,8 +893,8 @@ static NSString *_AFNetworkFTPServerMainContext = @"_AFNetworkFTPServerMainConte
 		AFVirtualFileSystemRequestCreate *createRequest = [[[AFVirtualFileSystemRequestCreate alloc] initWithPath:resolvedPath nodeType:AFVirtualFileSystemNodeTypeObject] autorelease];
 		
 		NSError *createError = nil;
-		id create = [self _executeFileSystemRequest:createRequest authenticate:YES forConnection:connection error:&createError];
-		if (create == nil) {
+		AFVirtualFileSystemResponse *createResponse = [self _executeFileSystemRequest:createRequest authenticate:YES forConnection:connection error:&createError];
+		if (createResponse == nil) {
 			do {
 				if ([[createError domain] isEqualToString:AFVirtualFileSystemErrorDomain]) {
 					// Node already exists but it is of the correct type, so the create operation succeeds
@@ -916,13 +929,14 @@ static NSString *_AFNetworkFTPServerMainContext = @"_AFNetworkFTPServerMainConte
 		AFVirtualFileSystemRequest *writeStreamRequest = [[[AFVirtualFileSystemRequestUpdate alloc] initWithPath:resolvedPath] autorelease];
 		
 		NSError *writeStreamError = nil;
-		NSOutputStream *writeStream = [self _executeFileSystemRequest:writeStreamRequest authenticate:YES forConnection:connection error:&writeStreamError];
-		if (writeStream == nil) {
+		AFVirtualFileSystemResponse *writeResponse = [self _executeFileSystemRequest:writeStreamRequest authenticate:YES forConnection:connection error:&writeStreamError];
+		if (writeResponse == nil) {
 			[connection writeReply:AFNetworkFTPReplyCodeRequestedFileActionError message:[NSString stringWithFormat:@"unknown failure, underlying error %@ %ld", [writeStreamError domain], (long)[writeStreamError code]] readLine:&_AFNetworkFTPServerMainContext];
 			return;
 		}
 		
-		[self _readDataRequest:connection bodyStream:writeStream];
+		NSOutputStream *writeBody = writeResponse.body;
+		[self _readDataRequest:connection bodyStream:writeBody];
 	});
 	
 	void (^parseRmCommand)(NSString *) = ^ (NSString *encodedPathname) {
@@ -939,8 +953,8 @@ static NSString *_AFNetworkFTPServerMainContext = @"_AFNetworkFTPServerMainConte
 		AFVirtualFileSystemRequestDelete *deleteRequest = [[[AFVirtualFileSystemRequestDelete alloc] initWithPath:resolvedPath] autorelease];
 		
 		NSError *deleteError = nil;
-		id delete = [self _executeFileSystemRequest:deleteRequest authenticate:YES forConnection:connection error:&deleteError];
-		if (delete == nil) {
+		AFVirtualFileSystemResponse *deleteResponse = [self _executeFileSystemRequest:deleteRequest authenticate:YES forConnection:connection error:&deleteError];
+		if (deleteResponse == nil) {
 			do {
 				if ([[deleteError domain] isEqualToString:AFVirtualFileSystemErrorDomain]) {
 					// Node doesn't exist, we were trying to delete it, so the delete operation succeeds
