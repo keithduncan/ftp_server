@@ -11,9 +11,11 @@
 		531A1D061674E32400EA1D82 /* main.m in Sources */ = {isa = PBXBuildFile; fileRef = 531A1D051674E32400EA1D82 /* main.m */; };
 		533F3016165BF5E100E327D4 /* AFVirtualFileSystem.m in Sources */ = {isa = PBXBuildFile; fileRef = 533F3015165BF5E100E327D4 /* AFVirtualFileSystem.m */; };
 		533F3019165C35DE00E327D4 /* AFNetworkFTPConnection.m in Sources */ = {isa = PBXBuildFile; fileRef = 533F3018165C35DE00E327D4 /* AFNetworkFTPConnection.m */; };
+		53631F3516793CDC00FEE305 /* AFNetworkHTTPFileSystemRenderer.m in Sources */ = {isa = PBXBuildFile; fileRef = 53631F3416793CDC00FEE305 /* AFNetworkHTTPFileSystemRenderer.m */; };
 		53759DFC15CEE8AD00F93127 /* Foundation.framework in Frameworks */ = {isa = PBXBuildFile; fileRef = 53759DFB15CEE8AD00F93127 /* Foundation.framework */; };
 		53759DFF15CEE8AD00F93127 /* main.m in Sources */ = {isa = PBXBuildFile; fileRef = 53759DFE15CEE8AD00F93127 /* main.m */; };
 		53759E1715CEE8E100F93127 /* CoreNetworking.framework in Frameworks */ = {isa = PBXBuildFile; fileRef = 53759E1215CEE8BE00F93127 /* CoreNetworking.framework */; };
+		5386730D167E4C4700F0AEA3 /* CoreServices.framework in Frameworks */ = {isa = PBXBuildFile; fileRef = 5386730C167E4C4700F0AEA3 /* CoreServices.framework */; };
 		53A0482215D077290054FFB0 /* AFNetworkFTPServer.m in Sources */ = {isa = PBXBuildFile; fileRef = 53A0482115D077290054FFB0 /* AFNetworkFTPServer.m */; };
 		53A0482515D077B80054FFB0 /* AFNetworkTelnetConnection.m in Sources */ = {isa = PBXBuildFile; fileRef = 53A0482415D077B80054FFB0 /* AFNetworkTelnetConnection.m */; };
 		53A0491015D1C4CF0054FFB0 /* AFInMemoryFileSystem.m in Sources */ = {isa = PBXBuildFile; fileRef = 53A0490F15D1C4CE0054FFB0 /* AFInMemoryFileSystem.m */; };
@@ -72,11 +74,14 @@
 		533F3017165C35DE00E327D4 /* AFNetworkFTPConnection.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; path = AFNetworkFTPConnection.h; sourceTree = "<group>"; };
 		533F3018165C35DE00E327D4 /* AFNetworkFTPConnection.m */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.objc; path = AFNetworkFTPConnection.m; sourceTree = "<group>"; };
 		536312A6166A7B3200B4308D /* AFVirtualFileSystemNode+AFVirtualFileSystemPrivate.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; path = "AFVirtualFileSystemNode+AFVirtualFileSystemPrivate.h"; sourceTree = "<group>"; };
-		53759DF715CEE8AD00F93127 /* FTP Server */ = {isa = PBXFileReference; explicitFileType = "compiled.mach-o.executable"; includeInIndex = 0; path = "FTP Server"; sourceTree = BUILT_PRODUCTS_DIR; };
+		53631F3316793CDC00FEE305 /* AFNetworkHTTPFileSystemRenderer.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; path = AFNetworkHTTPFileSystemRenderer.h; sourceTree = "<group>"; };
+		53631F3416793CDC00FEE305 /* AFNetworkHTTPFileSystemRenderer.m */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.objc; path = AFNetworkHTTPFileSystemRenderer.m; sourceTree = "<group>"; };
+		53759DF715CEE8AD00F93127 /* CameraServer */ = {isa = PBXFileReference; explicitFileType = "compiled.mach-o.executable"; includeInIndex = 0; path = CameraServer; sourceTree = BUILT_PRODUCTS_DIR; };
 		53759DFB15CEE8AD00F93127 /* Foundation.framework */ = {isa = PBXFileReference; lastKnownFileType = wrapper.framework; name = Foundation.framework; path = System/Library/Frameworks/Foundation.framework; sourceTree = SDKROOT; };
 		53759DFE15CEE8AD00F93127 /* main.m */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.c.objc; path = main.m; sourceTree = "<group>"; };
 		53759E0115CEE8AD00F93127 /* FTP Server-Prefix.pch */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.c.h; path = "FTP Server-Prefix.pch"; sourceTree = "<group>"; };
 		53759E0915CEE8BE00F93127 /* CoreNetworking.xcodeproj */ = {isa = PBXFileReference; lastKnownFileType = "wrapper.pb-project"; name = CoreNetworking.xcodeproj; path = ../Amber/CoreNetworking/CoreNetworking.xcodeproj; sourceTree = "<group>"; };
+		5386730C167E4C4700F0AEA3 /* CoreServices.framework */ = {isa = PBXFileReference; lastKnownFileType = wrapper.framework; name = CoreServices.framework; path = System/Library/Frameworks/CoreServices.framework; sourceTree = SDKROOT; };
 		53A0482015D077290054FFB0 /* AFNetworkFTPServer.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; path = AFNetworkFTPServer.h; sourceTree = "<group>"; };
 		53A0482115D077290054FFB0 /* AFNetworkFTPServer.m */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.objc; path = AFNetworkFTPServer.m; sourceTree = "<group>"; };
 		53A0482315D077B80054FFB0 /* AFNetworkTelnetConnection.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; path = AFNetworkTelnetConnection.h; sourceTree = "<group>"; };
@@ -100,6 +105,7 @@
 			isa = PBXFrameworksBuildPhase;
 			buildActionMask = 2147483647;
 			files = (
+				5386730D167E4C4700F0AEA3 /* CoreServices.framework in Frameworks */,
 				53759E1715CEE8E100F93127 /* CoreNetworking.framework in Frameworks */,
 				53759DFC15CEE8AD00F93127 /* Foundation.framework in Frameworks */,
 			);
@@ -138,7 +144,7 @@
 		53759DF815CEE8AD00F93127 /* Products */ = {
 			isa = PBXGroup;
 			children = (
-				53759DF715CEE8AD00F93127 /* FTP Server */,
+				53759DF715CEE8AD00F93127 /* CameraServer */,
 				531A1D011674E32400EA1D82 /* pasv_converter */,
 			);
 			name = Products;
@@ -149,6 +155,7 @@
 			children = (
 				53759E0915CEE8BE00F93127 /* CoreNetworking.xcodeproj */,
 				53759DFB15CEE8AD00F93127 /* Foundation.framework */,
+				5386730C167E4C4700F0AEA3 /* CoreServices.framework */,
 			);
 			name = Frameworks;
 			sourceTree = "<group>";
@@ -170,6 +177,8 @@
 				53A0490E15D1C4CE0054FFB0 /* AFInMemoryFileSystem.h */,
 				53A0490F15D1C4CE0054FFB0 /* AFInMemoryFileSystem.m */,
 				53759E0015CEE8AD00F93127 /* Supporting Files */,
+				53631F3316793CDC00FEE305 /* AFNetworkHTTPFileSystemRenderer.h */,
+				53631F3416793CDC00FEE305 /* AFNetworkHTTPFileSystemRenderer.m */,
 			);
 			path = "FTP Server";
 			sourceTree = "<group>";
@@ -213,9 +222,9 @@
 			productReference = 531A1D011674E32400EA1D82 /* pasv_converter */;
 			productType = "com.apple.product-type.tool";
 		};
-		53759DF615CEE8AD00F93127 /* FTP Server */ = {
+		53759DF615CEE8AD00F93127 /* Camera Server */ = {
 			isa = PBXNativeTarget;
-			buildConfigurationList = 53759E0615CEE8AD00F93127 /* Build configuration list for PBXNativeTarget "FTP Server" */;
+			buildConfigurationList = 53759E0615CEE8AD00F93127 /* Build configuration list for PBXNativeTarget "Camera Server" */;
 			buildPhases = (
 				53759DF315CEE8AD00F93127 /* Sources */,
 				53759DF415CEE8AD00F93127 /* Frameworks */,
@@ -225,9 +234,9 @@
 			dependencies = (
 				53759E1615CEE8D300F93127 /* PBXTargetDependency */,
 			);
-			name = "FTP Server";
+			name = "Camera Server";
 			productName = "FTP Server";
-			productReference = 53759DF715CEE8AD00F93127 /* FTP Server */;
+			productReference = 53759DF715CEE8AD00F93127 /* CameraServer */;
 			productType = "com.apple.product-type.tool";
 		};
 /* End PBXNativeTarget section */
@@ -258,7 +267,7 @@
 			);
 			projectRoot = "";
 			targets = (
-				53759DF615CEE8AD00F93127 /* FTP Server */,
+				53759DF615CEE8AD00F93127 /* Camera Server */,
 				531A1D001674E32400EA1D82 /* FTP PASV Converter */,
 			);
 		};
@@ -308,6 +317,7 @@
 				533F3016165BF5E100E327D4 /* AFVirtualFileSystem.m in Sources */,
 				533F3019165C35DE00E327D4 /* AFNetworkFTPConnection.m in Sources */,
 				53A225FE167544BF0036CB30 /* AFNetworkFTPMessage.m in Sources */,
+				53631F3516793CDC00FEE305 /* AFNetworkHTTPFileSystemRenderer.m in Sources */,
 			);
 			runOnlyForDeploymentPostprocessing = 0;
 		};
@@ -402,7 +412,7 @@
 			buildSettings = {
 				GCC_PRECOMPILE_PREFIX_HEADER = YES;
 				GCC_PREFIX_HEADER = "FTP Server/FTP Server-Prefix.pch";
-				PRODUCT_NAME = "$(TARGET_NAME)";
+				PRODUCT_NAME = CameraServer;
 				RUN_CLANG_STATIC_ANALYZER = YES;
 			};
 			name = Debug;
@@ -412,7 +422,7 @@
 			buildSettings = {
 				GCC_PRECOMPILE_PREFIX_HEADER = YES;
 				GCC_PREFIX_HEADER = "FTP Server/FTP Server-Prefix.pch";
-				PRODUCT_NAME = "$(TARGET_NAME)";
+				PRODUCT_NAME = CameraServer;
 				RUN_CLANG_STATIC_ANALYZER = YES;
 			};
 			name = Release;
@@ -438,7 +448,7 @@
 			defaultConfigurationIsVisible = 0;
 			defaultConfigurationName = Release;
 		};
-		53759E0615CEE8AD00F93127 /* Build configuration list for PBXNativeTarget "FTP Server" */ = {
+		53759E0615CEE8AD00F93127 /* Build configuration list for PBXNativeTarget "Camera Server" */ = {
 			isa = XCConfigurationList;
 			buildConfigurations = (
 				53759E0715CEE8AD00F93127 /* Debug */,
