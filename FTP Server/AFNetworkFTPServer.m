@@ -473,7 +473,7 @@ static NSString *_AFNetworkFTPServerMainContext = @"_AFNetworkFTPServerMainConte
 			} while (0);
 		}
 		
-		NSMutableString *encodedPath = [NSMutableString stringWithString:[self _encodePath:createResponse.node.absolutePath]];
+		NSMutableString *encodedPath = [NSMutableString stringWithString:[self _encodePath:resolvedPath]];
 		[encodedPath replaceOccurrencesOfString:@"\"" withString:@"\"\"" options:(NSStringCompareOptions)0 range:NSMakeRange(0, [encodedPath length])];
 		
 		[connection writeReply:AFNetworkFTPReplyCodePathnameCreated message:[NSString stringWithFormat:@"\"%@\"", encodedPath] readLine:&_AFNetworkFTPServerMainContext];
