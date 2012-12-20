@@ -14,6 +14,8 @@
 #import "AFNetworkFTPServer.h"
 #import "AFNetworkHTTPFileSystemRenderer.h"
 
+#import "KDCameraServerController.h"
+
 #pragma mark -
 
 static id <AFVirtualFileSystem> MakeFileSystem(void) {
@@ -73,7 +75,10 @@ static AFNetworkFTPServer *StartFTPServer(id <AFVirtualFileSystem> fileSystem) {
 static AFNetworkServer *StartHTTPServer(id <AFVirtualFileSystem> fileSystem) {
 	AFHTTPServer *server = [AFHTTPServer server];
 	
-	server.renderers = @[ [[[AFNetworkHTTPFileSystemRenderer alloc] initWithFileSystem:fileSystem] autorelease] ];
+	server.renderers = @[
+		[[[AFNetworkHTTPFileSystemRenderer alloc] initWithFileSystem:fileSystem] autorelease],
+		[[[KDCameraServerController alloc] initWithFileSystem:fileSystem] autorelease],
+	];
 	
 	BOOL openSockets = [server openInternetSocketsWithSocketSignature:AFNetworkSocketSignatureInternetTCP scope:AFNetworkInternetSocketScopeGlobal port:8080 errorHandler:nil];
 	NSCParameterAssert(openSockets);
