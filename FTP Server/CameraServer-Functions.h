@@ -8,6 +8,6 @@
 
 #import <Foundation/Foundation.h>
 
-@interface CameraServer_Functions : NSObject
+extern NSData *CameraServerContentsOfInputStream(NSInputStream *stream, NSError **errorRef);
 
-@end
+extern NSString *CameraServerContentTypeForFileSystemPath(NSString *path);

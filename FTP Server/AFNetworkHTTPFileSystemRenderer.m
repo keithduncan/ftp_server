@@ -8,6 +8,8 @@
 
 #import "AFNetworkHTTPFileSystemRenderer.h"
 
+#import "CameraServer-Functions.h"
+
 @interface AFNetworkHTTPFileSystemRenderer ()
 @property (retain, nonatomic) id <AFVirtualFileSystem> fileSystem;
 @end
@@ -81,49 +83,15 @@
 	 */
 	
 	NSInputStream *objectStream = objectResponse.body;
-	
-	NSMutableData *bodyData = [NSMutableData data];
-	
-	[objectStream open];
-	NSParameterAssert([objectStream streamStatus] == NSStreamStatusOpen);
-	
-	while ([objectStream streamStatus] == NSStreamStatusOpen) {
-		NSUInteger initialLength = [bodyData length];
-		
-		size_t bufferSize = 1024;
-		[bodyData increaseLengthBy:bufferSize];
-		
-		uint8_t *buffer = [bodyData mutableBytes] + initialLength;
-		
-		NSInteger readLength = [objectStream read:buffer maxLength:bufferSize];
-		[bodyData setLength:(initialLength + readLength)];
-	}
-	if ([objectStream streamStatus] != NSStreamStatusAtEnd) {
+	NSData *bodyData = CameraServerContentsOfInputStream(objectStream, NULL);
+	if (bodyData == nil) {
 		return NULL;
 	}
 	
 	AFHTTPStatusCode statusCode = AFHTTPStatusCodeOK;
 	CFHTTPMessageRef response = AFHTTPMessageMakeResponseWithCode(statusCode);
 	
-	NSString *contentType = @"application/octet-stream";
-	do {
-		NSString *fileExtension = objectResponse.node.absolutePath.pathExtension;
-		if (fileExtension == nil) {
-			break;
-		}
-		
-		NSString *type = (NSString *)[NSMakeCollectable(UTTypeCreatePreferredIdentifierForTag(kUTTagClassFilenameExtension, (CFStringRef)fileExtension, NULL)) autorelease];
-		if (type == nil) {
-			break;
-		}
-		
-		NSString *mimeType = [NSMakeCollectable(UTTypeCopyPreferredTagWithClass((CFStringRef)type, kUTTagClassMIMEType)) autorelease];
-		if (mimeType == nil) {
-			break;
-		}
-		
-		contentType = mimeType;
-	} while (0);
+	NSString *contentType = CameraServerContentTypeForFileSystemPath(objectResponse.node.absolutePath);
 	CFHTTPMessageSetHeaderFieldValue(response, (CFStringRef)AFHTTPMessageContentTypeHeader, (CFStringRef)contentType);
 	
 	CFHTTPMessageSetBody(response, (CFDataRef)bodyData);
