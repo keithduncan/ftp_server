@@ -8,6 +8,12 @@
 
 #import <Foundation/Foundation.h>
 
-@interface KDCameraServerController : NSObject
+#import "CoreNetworking/CoreNetworking.h"
+
+#import "AFVirtualFileSystem.h"
+
+@interface KDCameraServerController : NSObject <AFHTTPServerRenderer>
+
+- (id)initWithFileSystem:(id <AFVirtualFileSystem>)fileSystem;
 
 @end
