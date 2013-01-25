@@ -9,6 +9,8 @@
 /* Begin PBXBuildFile section */
 		531A1D031674E32400EA1D82 /* Foundation.framework in Frameworks */ = {isa = PBXBuildFile; fileRef = 53759DFB15CEE8AD00F93127 /* Foundation.framework */; };
 		531A1D061674E32400EA1D82 /* main.m in Sources */ = {isa = PBXBuildFile; fileRef = 531A1D051674E32400EA1D82 /* main.m */; };
+		534A15B416B2F8F300EA35DB /* CoreNetworking.framework in Copy Frameworks */ = {isa = PBXBuildFile; fileRef = 534A15AF16B2F8C900EA35DB /* CoreNetworking.framework */; };
+		534A15B516B2F90200EA35DB /* CoreNetworking.framework in Frameworks */ = {isa = PBXBuildFile; fileRef = 534A15AF16B2F8C900EA35DB /* CoreNetworking.framework */; };
 		53E92B20167FC012003A35EB /* Cocoa.framework in Frameworks */ = {isa = PBXBuildFile; fileRef = 53E92B00167FBFEB003A35EB /* Cocoa.framework */; };
 		53E92B2D167FC047003A35EB /* AFNetworkTelnetConnection.m in Sources */ = {isa = PBXBuildFile; fileRef = 53A0482415D077B80054FFB0 /* AFNetworkTelnetConnection.m */; };
 		53E92B2E167FC049003A35EB /* AFNetworkFTPConnection.m in Sources */ = {isa = PBXBuildFile; fileRef = 533F3018165C35DE00E327D4 /* AFNetworkFTPConnection.m */; };
@@ -18,40 +20,31 @@
 		53E92B32167FC053003A35EB /* AFInMemoryFileSystem.m in Sources */ = {isa = PBXBuildFile; fileRef = 53A0490F15D1C4CE0054FFB0 /* AFInMemoryFileSystem.m */; };
 		53E92B33167FC055003A35EB /* AFNetworkHTTPFileSystemRenderer.m in Sources */ = {isa = PBXBuildFile; fileRef = 53631F3416793CDC00FEE305 /* AFNetworkHTTPFileSystemRenderer.m */; };
 		53E92B34167FC058003A35EB /* main.m in Sources */ = {isa = PBXBuildFile; fileRef = 53759DFE15CEE8AD00F93127 /* main.m */; };
-		53E92B35167FC05D003A35EB /* CoreNetworking.framework in Frameworks */ = {isa = PBXBuildFile; fileRef = 53759E1215CEE8BE00F93127 /* CoreNetworking.framework */; };
-		53E92B37167FC113003A35EB /* CoreNetworking.framework in Copy Frameworks */ = {isa = PBXBuildFile; fileRef = 53759E1215CEE8BE00F93127 /* CoreNetworking.framework */; };
 		53E92BA7167FDA1B003A35EB /* KDCameraServerController.m in Sources */ = {isa = PBXBuildFile; fileRef = 53E92BA6167FDA1B003A35EB /* KDCameraServerController.m */; };
 		53E92BAA167FDCE6003A35EB /* CameraServer-Functions.m in Sources */ = {isa = PBXBuildFile; fileRef = 53E92BA9167FDCE6003A35EB /* CameraServer-Functions.m */; };
 /* End PBXBuildFile section */
 
 /* Begin PBXContainerItemProxy section */
-		533F2FA4165BE3E300E327D4 /* PBXContainerItemProxy */ = {
-			isa = PBXContainerItemProxy;
-			containerPortal = 53759E0915CEE8BE00F93127 /* CoreNetworking.xcodeproj */;
-			proxyType = 2;
-			remoteGlobalIDString = 53D4568116209630006FAD65;
-			remoteInfo = "CoreNetworking Tests";
-		};
-		53759E1115CEE8BE00F93127 /* PBXContainerItemProxy */ = {
+		534A15AE16B2F8C900EA35DB /* PBXContainerItemProxy */ = {
 			isa = PBXContainerItemProxy;
 			containerPortal = 53759E0915CEE8BE00F93127 /* CoreNetworking.xcodeproj */;
 			proxyType = 2;
 			remoteGlobalIDString = 5370E0710F5B0571008F5991;
 			remoteInfo = CoreNetworking;
 		};
-		53759E1315CEE8BE00F93127 /* PBXContainerItemProxy */ = {
+		534A15B016B2F8C900EA35DB /* PBXContainerItemProxy */ = {
+			isa = PBXContainerItemProxy;
+			containerPortal = 53759E0915CEE8BE00F93127 /* CoreNetworking.xcodeproj */;
+			proxyType = 2;
+			remoteGlobalIDString = 53D4568116209630006FAD65;
+			remoteInfo = "CoreNetworking Tests";
+		};
+		534A15B216B2F8C900EA35DB /* PBXContainerItemProxy */ = {
 			isa = PBXContainerItemProxy;
 			containerPortal = 53759E0915CEE8BE00F93127 /* CoreNetworking.xcodeproj */;
 			proxyType = 2;
 			remoteGlobalIDString = 53BEF6A10F5B6A2700063B8D;
 			remoteInfo = "CoreNetworking Touch";
-		};
-		53E92B2B167FC02E003A35EB /* PBXContainerItemProxy */ = {
-			isa = PBXContainerItemProxy;
-			containerPortal = 53759E0915CEE8BE00F93127 /* CoreNetworking.xcodeproj */;
-			proxyType = 1;
-			remoteGlobalIDString = 5370E0700F5B0571008F5991;
-			remoteInfo = CoreNetworking;
 		};
 /* End PBXContainerItemProxy section */
 
@@ -71,7 +64,7 @@
 			dstPath = "";
 			dstSubfolderSpec = 10;
 			files = (
-				53E92B37167FC113003A35EB /* CoreNetworking.framework in Copy Frameworks */,
+				534A15B416B2F8F300EA35DB /* CoreNetworking.framework in Copy Frameworks */,
 			);
 			name = "Copy Frameworks";
 			runOnlyForDeploymentPostprocessing = 0;
@@ -92,7 +85,7 @@
 		53759DFB15CEE8AD00F93127 /* Foundation.framework */ = {isa = PBXFileReference; lastKnownFileType = wrapper.framework; name = Foundation.framework; path = System/Library/Frameworks/Foundation.framework; sourceTree = SDKROOT; };
 		53759DFE15CEE8AD00F93127 /* main.m */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.c.objc; path = main.m; sourceTree = "<group>"; };
 		53759E0115CEE8AD00F93127 /* FTP Server-Prefix.pch */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.c.h; path = "FTP Server-Prefix.pch"; sourceTree = "<group>"; };
-		53759E0915CEE8BE00F93127 /* CoreNetworking.xcodeproj */ = {isa = PBXFileReference; lastKnownFileType = "wrapper.pb-project"; name = CoreNetworking.xcodeproj; path = ../Amber/CoreNetworking/CoreNetworking.xcodeproj; sourceTree = "<group>"; };
+		53759E0915CEE8BE00F93127 /* CoreNetworking.xcodeproj */ = {isa = PBXFileReference; lastKnownFileType = "wrapper.pb-project"; name = CoreNetworking.xcodeproj; path = Externals/CoreNetworking/CoreNetworking.xcodeproj; sourceTree = "<group>"; };
 		5386730C167E4C4700F0AEA3 /* CoreServices.framework */ = {isa = PBXFileReference; lastKnownFileType = wrapper.framework; name = CoreServices.framework; path = System/Library/Frameworks/CoreServices.framework; sourceTree = SDKROOT; };
 		53A0482015D077290054FFB0 /* AFNetworkFTPServer.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; path = AFNetworkFTPServer.h; sourceTree = "<group>"; };
 		53A0482115D077290054FFB0 /* AFNetworkFTPServer.m */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.objc; path = AFNetworkFTPServer.m; sourceTree = "<group>"; };
@@ -126,8 +119,8 @@
 			isa = PBXFrameworksBuildPhase;
 			buildActionMask = 2147483647;
 			files = (
-				53E92B35167FC05D003A35EB /* CoreNetworking.framework in Frameworks */,
 				53E92B20167FC012003A35EB /* Cocoa.framework in Frameworks */,
+				534A15B516B2F90200EA35DB /* CoreNetworking.framework in Frameworks */,
 			);
 			runOnlyForDeploymentPostprocessing = 0;
 		};
@@ -149,6 +142,16 @@
 				531A1D081674E32400EA1D82 /* FTP PASV Converter-Prefix.pch */,
 			);
 			name = "Supporting Files";
+			sourceTree = "<group>";
+		};
+		534A15A916B2F8C900EA35DB /* Products */ = {
+			isa = PBXGroup;
+			children = (
+				534A15AF16B2F8C900EA35DB /* CoreNetworking.framework */,
+				534A15B116B2F8C900EA35DB /* CoreNetworking Tests.octest */,
+				534A15B316B2F8C900EA35DB /* libCoreNetworking.a */,
+			);
+			name = Products;
 			sourceTree = "<group>";
 		};
 		53759DEC15CEE8AD00F93127 = {
@@ -219,16 +222,6 @@
 			name = "Supporting Files";
 			sourceTree = "<group>";
 		};
-		53759E0A15CEE8BE00F93127 /* Products */ = {
-			isa = PBXGroup;
-			children = (
-				53759E1215CEE8BE00F93127 /* CoreNetworking.framework */,
-				533F2FA5165BE3E300E327D4 /* CoreNetworking Tests.octest */,
-				53759E1415CEE8BE00F93127 /* libCoreNetworking.a */,
-			);
-			name = Products;
-			sourceTree = "<group>";
-		};
 		53E92B02167FBFEB003A35EB /* Other Frameworks */ = {
 			isa = PBXGroup;
 			children = (
@@ -271,7 +264,6 @@
 			buildRules = (
 			);
 			dependencies = (
-				53E92B2C167FC02E003A35EB /* PBXTargetDependency */,
 			);
 			name = "Camera Server";
 			productName = "Camera Server";
@@ -300,7 +292,7 @@
 			projectDirPath = "";
 			projectReferences = (
 				{
-					ProductGroup = 53759E0A15CEE8BE00F93127 /* Products */;
+					ProductGroup = 534A15A916B2F8C900EA35DB /* Products */;
 					ProjectRef = 53759E0915CEE8BE00F93127 /* CoreNetworking.xcodeproj */;
 				},
 			);
@@ -313,25 +305,25 @@
 /* End PBXProject section */
 
 /* Begin PBXReferenceProxy section */
-		533F2FA5165BE3E300E327D4 /* CoreNetworking Tests.octest */ = {
-			isa = PBXReferenceProxy;
-			fileType = wrapper.cfbundle;
-			path = "CoreNetworking Tests.octest";
-			remoteRef = 533F2FA4165BE3E300E327D4 /* PBXContainerItemProxy */;
-			sourceTree = BUILT_PRODUCTS_DIR;
-		};
-		53759E1215CEE8BE00F93127 /* CoreNetworking.framework */ = {
+		534A15AF16B2F8C900EA35DB /* CoreNetworking.framework */ = {
 			isa = PBXReferenceProxy;
 			fileType = wrapper.framework;
 			path = CoreNetworking.framework;
-			remoteRef = 53759E1115CEE8BE00F93127 /* PBXContainerItemProxy */;
+			remoteRef = 534A15AE16B2F8C900EA35DB /* PBXContainerItemProxy */;
 			sourceTree = BUILT_PRODUCTS_DIR;
 		};
-		53759E1415CEE8BE00F93127 /* libCoreNetworking.a */ = {
+		534A15B116B2F8C900EA35DB /* CoreNetworking Tests.octest */ = {
+			isa = PBXReferenceProxy;
+			fileType = wrapper.cfbundle;
+			path = "CoreNetworking Tests.octest";
+			remoteRef = 534A15B016B2F8C900EA35DB /* PBXContainerItemProxy */;
+			sourceTree = BUILT_PRODUCTS_DIR;
+		};
+		534A15B316B2F8C900EA35DB /* libCoreNetworking.a */ = {
 			isa = PBXReferenceProxy;
 			fileType = archive.ar;
 			path = libCoreNetworking.a;
-			remoteRef = 53759E1315CEE8BE00F93127 /* PBXContainerItemProxy */;
+			remoteRef = 534A15B216B2F8C900EA35DB /* PBXContainerItemProxy */;
 			sourceTree = BUILT_PRODUCTS_DIR;
 		};
 /* End PBXReferenceProxy section */
@@ -373,14 +365,6 @@
 			runOnlyForDeploymentPostprocessing = 0;
 		};
 /* End PBXSourcesBuildPhase section */
-
-/* Begin PBXTargetDependency section */
-		53E92B2C167FC02E003A35EB /* PBXTargetDependency */ = {
-			isa = PBXTargetDependency;
-			name = CoreNetworking;
-			targetProxy = 53E92B2B167FC02E003A35EB /* PBXContainerItemProxy */;
-		};
-/* End PBXTargetDependency section */
 
 /* Begin XCBuildConfiguration section */
 		531A1D0C1674E32400EA1D82 /* Debug */ = {
