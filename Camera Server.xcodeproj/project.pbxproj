@@ -185,6 +185,7 @@
 		53759DFD15CEE8AD00F93127 /* Camera Server */ = {
 			isa = PBXGroup;
 			children = (
+				53759DFE15CEE8AD00F93127 /* main.m */,
 				53A0482315D077B80054FFB0 /* AFNetworkTelnetConnection.h */,
 				53A0482415D077B80054FFB0 /* AFNetworkTelnetConnection.m */,
 				533F3017165C35DE00E327D4 /* AFNetworkFTPConnection.h */,
@@ -202,9 +203,9 @@
 				53631F3416793CDC00FEE305 /* AFNetworkHTTPFileSystemRenderer.m */,
 				53E92BA5167FDA1B003A35EB /* KDCameraServerController.h */,
 				53E92BA6167FDA1B003A35EB /* KDCameraServerController.m */,
-				53759E0015CEE8AD00F93127 /* Supporting Files */,
 				53E92BA8167FDCE6003A35EB /* CameraServer-Functions.h */,
 				53E92BA9167FDCE6003A35EB /* CameraServer-Functions.m */,
+				53759E0015CEE8AD00F93127 /* Supporting Files */,
 			);
 			name = "Camera Server";
 			path = "FTP Server";
@@ -213,7 +214,6 @@
 		53759E0015CEE8AD00F93127 /* Supporting Files */ = {
 			isa = PBXGroup;
 			children = (
-				53759DFE15CEE8AD00F93127 /* main.m */,
 				53759E0115CEE8AD00F93127 /* FTP Server-Prefix.pch */,
 			);
 			name = "Supporting Files";
