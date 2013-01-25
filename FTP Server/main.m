@@ -95,7 +95,7 @@ void server_main(void) {
 	CFRunLoopRun();
 }
 
-int main(int argc, const char **argv) {
+int main(int argc, char const **argv) {
 	@autoreleasepool {
 		server_main();
 	}
