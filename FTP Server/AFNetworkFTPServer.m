@@ -37,12 +37,8 @@ static NSString *_AFNetworkFTPServerMainContext = @"_AFNetworkFTPServerMainConte
 	[super dealloc];
 }
 
-- (void)networkLayerDidOpen:(id <AFNetworkTransportLayer>)layer {
-	[super networkLayerDidOpen:layer];
-	
-	if (![layer isKindOfClass:[AFNetworkFTPConnection class]]) {
-		return;
-	}
+- (void)configureLayer:(AFNetworkFTPConnection *)layer {
+	[super configureLayer:layer];
 	
 	NSDictionary *defaultProperties = [NSDictionary dictionaryWithObjectsAndKeys:
 									   @"anonymous", AFNetworkFTPConnectionUserKey,
@@ -51,12 +47,12 @@ static NSString *_AFNetworkFTPServerMainContext = @"_AFNetworkFTPServerMainConte
 									   @"/", AFNetworkFTPConnectionWorkingDirectoryPath,
 									   nil];
 	[defaultProperties enumerateKeysAndObjectsUsingBlock:^ (id key, id obj, BOOL *stop) {
-		[(AFNetworkFTPConnection *)layer setUserInfoValue:obj forKey:key];
+		[layer setUserInfoValue:obj forKey:key];
 	}];
 	
-	[(AFNetworkFTPConnection *)layer setDefaultMessageFunction:(NSString * (*)(NSUInteger))&AFNetworkFTPMessageForReplyCode];
+	[layer setDefaultMessageFunction:(NSString * (*)(NSUInteger))&AFNetworkFTPMessageForReplyCode];
 	
-	[(AFNetworkFTPConnection *)layer writeReply:AFNetworkFTPReplyCodeServiceReadyForNewUser message:nil readLine:&_AFNetworkFTPServerLoginContext];
+	[layer writeReply:AFNetworkFTPReplyCodeServiceReadyForNewUser message:nil readLine:&_AFNetworkFTPServerLoginContext];
 }
 
 - (NSString *)_resolvePath:(NSString *)encodedPath relativeToConnectionAndReplyIfCant:(AFNetworkFTPConnection *)connection {
@@ -509,7 +505,7 @@ static NSString *_AFNetworkFTPServerMainContext = @"_AFNetworkFTPServerMainConte
 			CFRetain(controlConnectionLocalAddress);
 			
 			char nodename[NI_MAXHOST];
-			int controlConnectionGetnameinfoError = getnameinfo((const struct sockaddr *)CFDataGetBytePtr(controlConnectionLocalAddress), (socklen_t)CFDataGetLength(controlConnectionLocalAddress), nodename, sizeof(nodename)/sizeof(*nodename), NULL, 0, NI_NUMERICHOST);
+			int controlConnectionGetnameinfoError = getnameinfo((struct sockaddr const *)CFDataGetBytePtr(controlConnectionLocalAddress), (socklen_t)CFDataGetLength(controlConnectionLocalAddress), nodename, sizeof(nodename)/sizeof(*nodename), NULL, 0, NI_NUMERICHOST);
 			
 			CFRelease(controlConnectionLocalAddress);
 			
@@ -551,7 +547,7 @@ static NSString *_AFNetworkFTPServerMainContext = @"_AFNetworkFTPServerMainConte
 			sa_family_t dataServerLocalAddressFamily = dataServerLocalAddressStorage->ss_family;
 			
 			char dataServerNodename[NI_MAXHOST]; char dataServerServname[NI_MAXSERV];
-			int convertDataServerToAsciiError = getnameinfo((const struct sockaddr *)dataServerLocalAddressStorage, dataServerLocalAddressLength, dataServerNodename, sizeof(dataServerNodename)/sizeof(*dataServerNodename), dataServerServname, sizeof(dataServerServname)/sizeof(*dataServerServname), NI_NUMERICHOST | NI_NUMERICSERV);
+			int convertDataServerToAsciiError = getnameinfo((struct sockaddr const *)dataServerLocalAddressStorage, dataServerLocalAddressLength, dataServerNodename, sizeof(dataServerNodename)/sizeof(*dataServerNodename), dataServerServname, sizeof(dataServerServname)/sizeof(*dataServerServname), NI_NUMERICHOST | NI_NUMERICSERV);
 			
 			CFRelease(dataServerLocalAddress);
 			
@@ -695,7 +691,7 @@ static NSString *_AFNetworkFTPServerMainContext = @"_AFNetworkFTPServerMainConte
 		 */
 #warning this isn't thread safe, we need an _r variant as in the GNU C standard library, this already won't work if getopt has already been invoked in this process as it doesn't reset optind
 		int option = 0;
-		while ((option = getopt(argc, (char * const *)argv, "al")) != -1) {
+		while ((option = getopt(argc, (char *const *)argv, "al")) != -1) {
 			switch (option) {
 				case 'a':
 				{
