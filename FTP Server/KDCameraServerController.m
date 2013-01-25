@@ -64,6 +64,8 @@
 		return NULL;
 	}
 	
+	// Assumes files are named numerically ascending
+	
 	NSSortDescriptor *numericSortDescriptor = [NSSortDescriptor sortDescriptorWithKey:@"absolutePath" ascending:YES comparator:^ NSComparisonResult (id obj1, id obj2) {
 		return [(NSString *)obj1 compare:(NSString *)obj2 options:NSNumericSearch];
 	}];
@@ -83,21 +85,17 @@
 		return NULL;
 	}
 	
+	NSString *nodePath = readResponse.node.absolutePath;
+	NSString *redirectLocation = nodePath;
 	
-	CFHTTPMessageRef response = AFHTTPMessageMakeResponseWithCode(AFHTTPStatusCodeOK);
-	
-	NSString *contentType = CameraServerContentTypeForFileSystemPath(readResponse.node.absolutePath);
-	CFHTTPMessageSetHeaderFieldValue(response, (CFStringRef)AFHTTPMessageContentTypeHeader, (CFStringRef)contentType);
+	CFHTTPMessageRef response = AFHTTPMessageMakeResponseWithCode(AFHTTPStatusCodeTemporaryRedirect);
+	CFHTTPMessageSetHeaderFieldValue(response, (CFStringRef)AFHTTPMessageLocationHeader, (CFStringRef)redirectLocation);
 	
 	if ([requestMethod isEqualToString:AFHTTPMethodHEAD]) {
 		return response;
 	}
 	
-	NSData *bodyData = CameraServerContentsOfInputStream(readResponse.body, NULL);
-	if (bodyData == nil) {
-		return NULL;
-	}
-	CFHTTPMessageSetBody(response, (CFDataRef)bodyData);
+	// Add body with link...
 	
 	return response;
 }
