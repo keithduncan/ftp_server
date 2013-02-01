@@ -79,6 +79,7 @@
 		533F3015165BF5E100E327D4 /* AFVirtualFileSystem.m */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.objc; path = AFVirtualFileSystem.m; sourceTree = "<group>"; };
 		533F3017165C35DE00E327D4 /* AFNetworkFTPConnection.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; path = AFNetworkFTPConnection.h; sourceTree = "<group>"; };
 		533F3018165C35DE00E327D4 /* AFNetworkFTPConnection.m */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.objc; path = AFNetworkFTPConnection.m; sourceTree = "<group>"; };
+		534E9A0816BC55B600900A6F /* ftp_stress.sh */ = {isa = PBXFileReference; lastKnownFileType = text.script.sh; path = ftp_stress.sh; sourceTree = "<group>"; };
 		536312A6166A7B3200B4308D /* AFVirtualFileSystemNode+AFVirtualFileSystemPrivate.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; path = "AFVirtualFileSystemNode+AFVirtualFileSystemPrivate.h"; sourceTree = "<group>"; };
 		53631F3316793CDC00FEE305 /* AFNetworkHTTPFileSystemRenderer.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; path = AFNetworkHTTPFileSystemRenderer.h; sourceTree = "<group>"; };
 		53631F3416793CDC00FEE305 /* AFNetworkHTTPFileSystemRenderer.m */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.objc; path = AFNetworkHTTPFileSystemRenderer.m; sourceTree = "<group>"; };
@@ -217,6 +218,7 @@
 		53759E0015CEE8AD00F93127 /* Supporting Files */ = {
 			isa = PBXGroup;
 			children = (
+				534E9A0816BC55B600900A6F /* ftp_stress.sh */,
 				53759E0115CEE8AD00F93127 /* FTP Server-Prefix.pch */,
 			);
 			name = "Supporting Files";
