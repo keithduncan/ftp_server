@@ -14,6 +14,9 @@
 #import "AFNetworkFTPConnection.h"
 #import "AFNetworkFTPMessage.h"
 
+#define AF_NETWORK_ENABLE_REQUEST_LOGGING() ([[[[NSProcessInfo processInfo] environment] objectForKey:@"com.thirty-three.corenetworking.ftp.server.log.requests"] isEqual:@"1"])
+#define AF_NETWORK_ENABLE_RESPONSE_LOGGING() ([[[[NSProcessInfo processInfo] environment] objectForKey:@"com.thirty-three.corenetworking.ftp.server.log.responses"] isEqual:@"1"])
+
 @implementation AFNetworkFTPServer
 
 static NSString *const AFNetworkFTPConnectionUserKey = @"AFNetworkFTPConnectionUser"; // NSString
@@ -232,12 +235,10 @@ static NSString *_AFNetworkFTPServerMainContext = @"_AFNetworkFTPServerMainConte
 #warning needs to write a response on the control channel after the data transfer is complete
 }
 
-- (void)connection:(AFNetworkFTPConnection *)connection didWriteReply:(NSData *)reply context:(void *)context {
-	fprintf(stderr, "< %s", [[[[NSString alloc] initWithData:reply encoding:NSASCIIStringEncoding] autorelease] UTF8String]);
-}
-
 - (void)connection:(AFNetworkFTPConnection *)connection didReadLine:(NSString *)line context:(void *)context {
-	fprintf(stderr, "> %s\n", [line UTF8String]);
+	if (AF_NETWORK_ENABLE_REQUEST_LOGGING()) {
+		fprintf(stderr, "> %s\n", [line UTF8String]);
+	}
 	
 	__block BOOL didParse = NO;
 	void (^tryParseCommand)(NSString *, void (^)(NSString *)) = ^ void (NSString *command, void (^parse)(NSString *parameter)) {
@@ -1004,6 +1005,12 @@ static NSString *_AFNetworkFTPServerMainContext = @"_AFNetworkFTPServerMainConte
 	[connection writeReply:AFNetworkFTPReplyCodeCommandNotImplemented message:nil readLine:&_AFNetworkFTPServerMainContext];
 }
 
+- (void)connection:(AFNetworkFTPConnection *)connection didWriteReply:(NSData *)reply context:(void *)context {
+	if (AF_NETWORK_ENABLE_RESPONSE_LOGGING()) {
+		fprintf(stderr, "< %s", [[[[NSString alloc] initWithData:reply encoding:NSASCIIStringEncoding] autorelease] UTF8String]);
+	}
+}
+
 - (void)connection:(AFNetworkFTPConnection *)connection dataConnectionDidReceiveError:(NSError *)error {
 	
 }
@@ -1023,3 +1030,6 @@ static NSString *_AFNetworkFTPServerMainContext = @"_AFNetworkFTPServerMainConte
 }
 
 @end
+
+#undef AF_NETWORK_ENABLE_REQUEST_LOGGING
+#undef AF_NETWORK_ENABLE_RESPONSE_LOGGING
