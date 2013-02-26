@@ -60,7 +60,7 @@
 	if (listResponse == nil) {
 		return NULL;
 	}
-	if (listResponse.node.nodeType != AFVirtualFileSystemNodeTypeContainer) {
+	else if (listResponse.node.nodeType != AFVirtualFileSystemNodeTypeContainer) {
 		return NULL;
 	}
 	
@@ -81,7 +81,7 @@
 	if (readResponse == nil) {
 		return NULL;
 	}
-	if (readResponse.node.nodeType != AFVirtualFileSystemNodeTypeObject) {
+	else if (readResponse.node.nodeType != AFVirtualFileSystemNodeTypeObject) {
 		return NULL;
 	}
 	
