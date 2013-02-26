@@ -74,7 +74,7 @@
             isEnabled = "YES">
          </EnvironmentVariable>
          <EnvironmentVariable
-            key = "com.thirty-three.corenetworking.http.server.log.requests"
+            key = "com.thirty-three.corenetworking.http.server.log.responses"
             value = "1"
             isEnabled = "YES">
          </EnvironmentVariable>
