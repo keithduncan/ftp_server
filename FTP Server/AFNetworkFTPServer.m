@@ -479,6 +479,9 @@ static NSString *_AFNetworkFTPServerMainContext = @"_AFNetworkFTPServerMainConte
 	tryParseCommand(@"XMKD", parseMkdCommand);
 	
 	tryParseCommand(@"PASV", ^ (NSString *parameter) {
+		[connection writeReply:AFNetworkFTPReplyCodeCommandNotImplemented message:nil readLine:&_AFNetworkFTPServerMainContext];
+		return;
+		
 		if ([parameter length] != 0) {
 			[connection writeReply:AFNetworkFTPReplyCodeCommandSupportedButParameterUnsupported message:nil readLine:&_AFNetworkFTPServerMainContext];
 			return;
@@ -529,7 +532,7 @@ static NSString *_AFNetworkFTPServerMainContext = @"_AFNetworkFTPServerMainConte
 			freeaddrinfo(addrinfo);
 			
 			NSError *openSocketError = nil;
-			AFNetworkSocket *openSocket = [connection openDataServerWithAddress:newDataServerSocketAddress error:&openSocketError];
+			AFNetworkSocket *openSocket = [connection startDataServerWithAddress:newDataServerSocketAddress error:&openSocketError];
 			if (openSocket == nil) {
 				if ([[openSocketError domain] isEqualToString:AFCoreNetworkingBundleIdentifier] && [openSocketError code] == AFNetworkSocketErrorListenerOpenAddressAlreadyUsed) {
 					goto ConvertNodenameToBinary;
@@ -588,11 +591,61 @@ static NSString *_AFNetworkFTPServerMainContext = @"_AFNetworkFTPServerMainConte
 		[connection writeReply:AFNetworkFTPReplyCodeEnteringPassiveMode message:passiveMessage readLine:&_AFNetworkFTPServerMainContext];
 	});
 	
-#if 0
 	tryParseCommand(@"PORT", ^ (NSString *parameter) {
+		if ([parameter length] == 0) {
+			[connection writeReply:AFNetworkFTPReplyCodeParameterSyntaxError message:@"PORT requires a HOST-PORT specification" readLine:&_AFNetworkFTPServerMainContext];
+			return;
+		}
 		
+		[connection closeDataServer];
+		
+		NSArray *components = [parameter componentsSeparatedByString:@","];
+		if ([components count] != 6) {
+			[connection writeReply:AFNetworkFTPReplyCodeParameterSyntaxError message:@"couldn't understand PORT parameter" readLine:&_AFNetworkFTPServerMainContext];
+			return;
+		}
+		
+		int h1 = 0, h2 = 0, h3 = 0, h4 = 0;
+		
+		int hIdx = 0;
+		h1 = [components[hIdx++] intValue];
+		h2 = [components[hIdx++] intValue];
+		h3 = [components[hIdx++] intValue];
+		h4 = [components[hIdx++] intValue];
+		
+		int p1 = 0, p2 = 0;
+		
+		int pIdx = hIdx;
+		p1 = [components[pIdx++] intValue];
+		p2 = [components[pIdx++] intValue];
+		
+		int port = ((p1 * 256) + p2);
+		
+		NSString *hostAddress = [NSString stringWithFormat:@"%u.%u.%u.%u", h1, h2, h3, h4];
+		NSString *hostPort = [NSString stringWithFormat:@"%u", port];
+		
+		struct addrinfo hints = {
+			.ai_flags = AI_NUMERICHOST | AI_NUMERICSERV,
+		};
+		struct addrinfo *addressInfoList = NULL;
+		int getaddrinfoError = getaddrinfo([hostAddress UTF8String], [hostPort UTF8String], &hints, &addressInfoList);
+		if (getaddrinfoError != 0) {
+			[connection writeReply:AFNetworkFTPReplyCodeParameterSyntaxError message:@"couldn't connect to PORT parameter" readLine:&_AFNetworkFTPServerMainContext];
+			return;
+		}
+		
+		NSData *address = [NSData dataWithBytes:addressInfoList->ai_addr length:addressInfoList->ai_addrlen];
+		freeaddrinfo(addressInfoList);
+		
+		if (![connection connectToDataServerWithAddress:address error:NULL]) {
+			[connection writeReply:AFNetworkFTPReplyCodeCantOpenDataConnection message:@"couldn't connect to PORT parameter" readLine:&_AFNetworkFTPServerMainContext];
+			return;
+		}
+		
+		[connection writeReply:AFNetworkFTPReplyCodeCommandOK message:nil readLine:&_AFNetworkFTPServerMainContext];
 	});
 	
+#if 0
 	tryParseCommand(@"EPSV", ^ (NSString *parameter) {
 		
 	});

@@ -12,11 +12,11 @@
 
 NSString *const AFNetworkFTPErrorDomain = @"com.thirty-three.corenetworking.ftp";
 
-@interface AFNetworkFTPConnection () <AFNetworkServerDelegate>
+@interface AFNetworkFTPConnection () <AFNetworkServerDelegate, AFNetworkTransportDelegate>
 @property (readwrite, retain, nonatomic) AFNetworkServer *dataServer;
 
 @property (retain, nonatomic) NSTimer *dataConnectionTimeout;
-@property (readwrite, retain, nonatomic) AFNetworkConnection *dataConnection;
+@property (readwrite, retain, nonatomic) AFNetworkTransport *dataConnection;
 @property (retain, nonatomic) AFNetworkPacket <AFNetworkPacketReading> *dataReadPacket;
 @property (retain, nonatomic) AFNetworkPacket <AFNetworkPacketWriting> *dataWritePacket;
 @end
@@ -41,14 +41,51 @@ AFNETWORK_NSSTRING_CONTEXT(_AFNetworkFTPConnectionDataConnectionWriteContext);
 	[super close];
 }
 
-- (AFNetworkSocket *)openDataServerWithAddress:(NSData *)address error:(NSError **)errorRef {
-	NSParameterAssert(!self.hasDataServer);
+- (void)_assertCanOpenDataChannel {
+	NSParameterAssert(!self.hasEitherDataServerOrConnection);
+}
+
+- (AFNetworkSchedule *)_makeDataSchedule {
+	AFNetworkSchedule *schedule = [[[AFNetworkSchedule alloc] init] autorelease];
+	[schedule scheduleInRunLoop:[NSRunLoop mainRunLoop] forMode:NSRunLoopCommonModes];
+	return schedule;
+}
+
+- (void)_makeDataServer {
+	[self _assertCanOpenDataChannel];
 	
 	AFNetworkServer *newDataServer = [AFNetworkServer server];
 	newDataServer.delegate = self;
+	newDataServer.schedule = [self _makeDataSchedule];
 	self.dataServer = newDataServer;
+}
+
+- (AFNetworkSocket *)startDataServerWithAddress:(NSData *)address error:(NSError **)errorRef {
+	[self _makeDataServer];
 	
-	return [newDataServer openSocketWithSignature:AFNetworkSocketSignatureInternetTCP address:address error:errorRef];
+	return [self.dataServer openSocketWithSignature:AFNetworkSocketSignatureInternetTCP address:address error:errorRef];
+}
+
+- (BOOL)connectToDataServerWithAddress:(NSData *)address error:(NSError **)errorRef {
+	[self _makeDataServer];
+	
+	CFHostRef host = (CFHostRef)[NSMakeCollectable(CFHostCreateWithAddress(kCFAllocatorDefault, (CFDataRef)address)) autorelease];
+	
+	AFNetworkHostSignature transportSignature = {
+		.host = host,
+		.transport = {
+			.type = AFNetworkSocketSignatureInternetTCP,
+			.port = af_sockaddr_in_read_port([address bytes]),
+		},
+	};
+	AFNetworkTransport *transport = [[[AFNetworkTransport alloc] initWithTransportSignature:&transportSignature] autorelease];
+	
+	[self.dataServer addConnection:transport];
+	self.dataConnection = transport;
+	
+	[transport open];
+	
+	return YES;
 }
 
 - (void)closeDataServer {
@@ -66,15 +103,23 @@ AFNETWORK_NSSTRING_CONTEXT(_AFNetworkFTPConnectionDataConnectionWriteContext);
 	return self.dataServer != nil;
 }
 
+- (BOOL)hasDataConnection {
+	return self.dataConnection != nil;
+}
+
+- (BOOL)hasEitherDataServerOrConnection {
+	return self.hasDataServer || self.hasDataConnection;
+}
+
 - (BOOL)_checkHasDataServerAndCanEnqueuePacket:(NSError **)errorRef {
-	if (!self.hasDataServer) {
+	if (!self.hasEitherDataServerOrConnection) {
 		if (errorRef != NULL) {
 			*errorRef = [NSError errorWithDomain:AFNetworkFTPErrorDomain code:AFNetworkFTPErrorCodeNoDataServer userInfo:nil];
 		}
 		return NO;
 	}
 	
-	if (self.dataReadPacket != nil || self.dataWritePacket != nil) {
+	if (self.hasPendingDataConnectionPacket) {
 		if (errorRef != NULL) {
 			*errorRef = [NSError errorWithDomain:AFNetworkFTPErrorDomain code:AFNetworkFTPErrorCodeDataAlreadyEnqueued userInfo:nil];
 		}
@@ -106,8 +151,12 @@ AFNETWORK_NSSTRING_CONTEXT(_AFNetworkFTPConnectionDataConnectionWriteContext);
 	return YES;
 }
 
+- (BOOL)hasPendingDataConnectionPacket {
+	return self.dataReadPacket != nil || self.dataWritePacket != nil;
+}
+
 - (void)_assertDoesntHavePendingDataConnectionPacket {
-	NSParameterAssert(self.dataReadPacket == nil && self.dataWritePacket == nil);
+	NSParameterAssert(!self.hasPendingDataConnectionPacket);
 }
 
 - (void)_startDataConnectionTimeout {
@@ -126,6 +175,25 @@ AFNETWORK_NSSTRING_CONTEXT(_AFNetworkFTPConnectionDataConnectionWriteContext);
 	
 	[server closeListenSockets];
 	return YES;
+}
+
+- (void)networkLayer:(id <AFNetworkTransportLayer>)layer didReceiveError:(NSError *)error {
+	if (layer == self.dataConnection) {
+		[self.delegate connection:self dataConnectionDidReceiveError:error];
+		[self closeDataServer];
+	}
+	else {
+		[super networkLayer:self didReceiveError:error];
+	}
+}
+
+- (void)networkLayerDidOpen:(id <AFNetworkTransportLayer>)layer {
+	if (layer == self.lowerLayer) {
+		return;
+	}
+	else if (layer == self.dataConnection) {
+		[self _didAcceptConnectionOrTimeout];
+	}
 }
 
 - (void)networkServer:(AFNetworkServer *)server didEncapsulateLayer:(id <AFNetworkConnectionLayer>)connection {
@@ -161,7 +229,7 @@ AFNETWORK_NSSTRING_CONTEXT(_AFNetworkFTPConnectionDataConnectionWriteContext);
 	self.dataWritePacket = nil;
 }
 
-- (void)networkLayer:(id <AFNetworkTransportLayer>)layer didRead:(AFNetworkPacket<AFNetworkPacketReading> *)packet context:(void *)context {
+- (void)networkLayer:(id <AFNetworkTransportLayer>)layer didRead:(AFNetworkPacket <AFNetworkPacketReading> *)packet context:(void *)context {
 	if (context == &_AFNetworkFTPConnectionDataConnectionReadContext) {
 		[self.delegate connectionDidReadDataToWriteStream:self];
 	}
@@ -170,22 +238,12 @@ AFNETWORK_NSSTRING_CONTEXT(_AFNetworkFTPConnectionDataConnectionWriteContext);
 	}
 }
 
-- (void)networkLayer:(id<AFNetworkTransportLayer>)layer didWrite:(AFNetworkPacket<AFNetworkPacketWriting> *)packet context:(void *)context {
+- (void)networkLayer:(id<AFNetworkTransportLayer>)layer didWrite:(AFNetworkPacket <AFNetworkPacketWriting> *)packet context:(void *)context {
 	if (context == &_AFNetworkFTPConnectionDataConnectionWriteContext) {
 		[self.delegate connectionDidWriteDataFromReadStream:self];
 	}
 	else {
 		[super networkLayer:layer didWrite:packet context:context];
-	}
-}
-
-- (void)networkLayer:(id <AFNetworkTransportLayer>)layer didReceiveError:(NSError *)error {
-	if (layer == self.dataConnection) {
-		[self.delegate connection:self dataConnectionDidReceiveError:error];
-		[self closeDataServer];
-	}
-	else {
-		[super networkLayer:self didReceiveError:error];
 	}
 }
 
