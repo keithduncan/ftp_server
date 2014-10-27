@@ -35,28 +35,29 @@ typedef NS_ENUM(NSInteger, AFNetworkFTPErrorCode) {
 
 @property (assign, nonatomic) id <AFNetworkFTPConnectionDelegate> delegate;
 
-/*
-	PASV support
- */
-
 /*!
 	\brief
-	Only the first connection to the data server is accepted and queued up.
+	Only the first connection to the data server is accepted and queued up, PASV support
 	
 	\details
 	Throws an exception if there is already a data server open
  */
-- (AFNetworkSocket *)openDataServerWithAddress:(NSData *)address error:(NSError **)errorRef;
+- (AFNetworkSocket *)startDataServerWithAddress:(NSData *)address error:(NSError **)errorRef;
+/*!
+	\brief
+	Connect to a data server, PORT support
+ */
+- (BOOL)connectToDataServerWithAddress:(NSData *)address error:(NSError **)errorRef;
 
 /*!
 	\brief
-	Stop listening and terminate any ongoing data connection
+	Stop listening / connecting (PASV / PORT) and terminate any ongoing data connection
  */
 - (void)closeDataServer;
 
 /*!
 	\brief
-	YES upon return from `openDataServerWithAddress:error:`
+	YES upon return from `startDataServerWithAddress:error:` and `connectToDataServerWithAddress:error:`
 	NO upon return from `closeDataServer`
  */
 @property (readonly, nonatomic) BOOL hasDataServer;
